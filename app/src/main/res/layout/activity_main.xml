@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/black"
+    android:backgroundTint="#17FFFFFF"
+    android:backgroundTintMode="src_over"
+    android:padding="8dp"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/txt_skip"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:fontFamily="@font/bellerose"
+        android:text="Just Skip"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="24sp" />
+
+    <Button
+        android:id="@+id/btn_login"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/txt_skip"
+        android:background="@color/colorButton"
+        android:fontFamily="@font/bellerose"
+        android:text="Login"
+        android:textColor="@android:color/white"
+        android:textSize="22sp" />
+
+    <com.facebook.login.widget.LoginButton
+        android:id="@+id/login_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/btn_login"
+        android:layout_gravity="center_horizontal"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="30dp"
+        android:layout_marginBottom="10dp" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="285dp"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/btn_login"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="59dp"
+        android:layout_marginTop="162dp"
+        android:layout_marginEnd="59dp"
+        android:layout_marginBottom="292dp"
+        android:fontFamily="@font/bellerose"
+        android:text="Fabyoulo"
+        android:textAlignment="center"
+        android:textColor="@android:color/white"
+        android:textSize="80sp" />
+
+</RelativeLayout>
