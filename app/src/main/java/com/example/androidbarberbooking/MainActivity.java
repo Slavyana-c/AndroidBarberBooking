@@ -16,14 +16,20 @@ import android.widget.Toast;
 
 import com.example.androidbarberbooking.Common.Common;
 import com.facebook.AccessToken;
+import com.facebook.AccessTokenTracker;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
 import com.facebook.appevents.AppEventsLogger;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -37,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
 
 //    private static final int APP_REQUEST_CODE = 7117;
     CallbackManager callbackManager = CallbackManager.Factory.create();
-
+    AccessTokenTracker accessTokenTracker;
 
     @BindView(R.id.btn_login)
     Button btn_login;
@@ -49,6 +55,9 @@ public class MainActivity extends AppCompatActivity {
     public void loginUser() {
 
         Toast.makeText(this, "Login", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(this, HomeActivity.class);
+        intent.putExtra(Common.IS_LOGIN, true);
+        startActivity(intent);
         // facebook login?
     }
 
@@ -77,7 +86,31 @@ public class MainActivity extends AppCompatActivity {
         final String EMAIL = "email";
 
         LoginButton loginButton = (LoginButton) findViewById(R.id.login_button);
-        loginButton.setReadPermissions(Arrays.asList(EMAIL));
+        loginButton.setReadPermissions(Arrays.asList(EMAIL, "public_profile"));
+
+        FacebookSdk.sdkInitialize(this.getApplicationContext());
+        callbackManager = CallbackManager.Factory.create();
+
+        accessTokenTracker = new AccessTokenTracker() {
+            @Override
+            protected void onCurrentAccessTokenChanged(
+                    AccessToken oldAccessToken,
+                    AccessToken currentAccessToken) {
+                // Set the access token using
+                // currentAccessToken when it's loaded or set.
+            }
+        };
+        // If the access token is available already assign it.
+        //AccessToken accessToken = AccessToken.getCurrentAccessToken();
+        AccessToken accessToken = AccessToken.getCurrentAccessToken();
+        boolean isLoggedIn = accessToken != null && !accessToken.isExpired();
+
+        if(isLoggedIn) {
+            Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+            intent.putExtra(Common.IS_LOGIN, true);
+            startActivity(intent);
+        }
+
 
         // If you are using in a fragment, call loginButton.setFragment(this);
 
@@ -85,10 +118,14 @@ public class MainActivity extends AppCompatActivity {
         loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
+
+
                 Toast.makeText(MainActivity.this, "Successfully logged in", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(MainActivity.this, HomeActivity.class);
                 intent.putExtra(Common.IS_LOGIN, true);
                 startActivity(intent);
+
+
             }
 
             @Override
@@ -103,22 +140,18 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        AccessToken accessToken = AccessToken.getCurrentAccessToken();
-        boolean isLoggedIn = accessToken != null && !accessToken.isExpired();
-
-        if(isLoggedIn) {
-            Intent intent = new Intent(MainActivity.this, HomeActivity.class);
-            intent.putExtra(Common.IS_LOGIN, true);
-            startActivity(intent);
-        }
 
 
 
-        LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("public_profile"));
+//        LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("public_profile"));
     }
 
 
-
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        accessTokenTracker.stopTracking();
+    }
     // hash key
 
 //    private void printKeyHash() {

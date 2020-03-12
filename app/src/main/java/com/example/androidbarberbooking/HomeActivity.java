@@ -1,14 +1,156 @@
 package com.example.androidbarberbooking;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
+
+import com.example.androidbarberbooking.Common.Common;
+import com.example.androidbarberbooking.Fragments.HomeFragment;
+import com.example.androidbarberbooking.Fragments.ShoppingFragment;
+import com.example.androidbarberbooking.Model.User;
+import com.facebook.AccessToken;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.Collection;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import dmax.dialog.SpotsDialog;
 
 public class HomeActivity extends AppCompatActivity {
+
+    @BindView(R.id.bottom_navigation)
+    BottomNavigationView bottomNavigationView;
+
+    BottomSheetDialog bottomSheetDialog;
+
+    CollectionReference userRef;
+
+    AlertDialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+        ButterKnife.bind(HomeActivity.this);
+
+        // Init
+        userRef = FirebaseFirestore.getInstance().collection("User");
+        dialog = new SpotsDialog.Builder().setContext(this).setCancelable(false).build();
+
+
+
+        // Check intent
+        // login = true, enable full access
+        // login = false, shopping
+        if(getIntent() != null)
+        {
+            boolean isLogin = getIntent().getBooleanExtra(Common.IS_LOGIN, false);
+            if(isLogin)
+            {
+                dialog.show();
+
+                // Check if user exists
+                AccessToken accessToken = AccessToken.getCurrentAccessToken();
+                boolean isLoggedIn = accessToken != null && !accessToken.isExpired();
+
+                // if not registered
+                if(!isLoggedIn) {
+                    showUpdateDialog("email@email.com");
+                }
+
+                if(dialog.isShowing())
+                    dialog.dismiss();
+
+            }
+        }
+
+        // View
+        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            Fragment fragment = null;
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+                if(menuItem.getItemId() == R.id.action_home) {
+                    fragment = new HomeFragment();
+                }
+                else if(menuItem.getItemId() == R.id.action_shopping) {
+                    fragment = new ShoppingFragment();
+                }
+
+                return loadFragment(fragment);
+            }
+        });
+
+        bottomNavigationView.setSelectedItemId(R.id.action_home);
+    }
+
+    private boolean loadFragment(Fragment fragment) {
+        if(fragment != null)
+        {
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, fragment).commit();
+
+            return true;
+        }
+        return false;
+    }
+
+    private void showUpdateDialog(String email) {
+
+        // Init dialog
+        bottomSheetDialog = new BottomSheetDialog(this);
+        bottomSheetDialog.setTitle("One more step!");
+        bottomSheetDialog.setCanceledOnTouchOutside(false);
+        bottomSheetDialog.setCancelable(false);
+        View sheetView = getLayoutInflater().inflate(R.layout.layout_update_information, null);
+
+        Button btn_update = (Button)sheetView.findViewById(R.id.btn_update);
+        TextInputEditText edit_name = (TextInputEditText) sheetView.findViewById(R.id.edit_name);
+        TextInputEditText edit_address = (TextInputEditText) sheetView.findViewById(R.id.edit_address);
+
+        btn_update.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(!dialog.isShowing())
+                    dialog.show();
+
+                    User user = new User(edit_name.getText().toString(),
+                        edit_address.getText().toString(), email);
+
+                userRef.document(email).set(user).addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        bottomSheetDialog.dismiss();
+                        if(dialog.isShowing())
+                            dialog.dismiss();
+                        Toast.makeText(HomeActivity.this, "Thank you", Toast.LENGTH_SHORT).show();
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        bottomSheetDialog.dismiss();
+                        if(dialog.isShowing())
+                            dialog.dismiss();
+                        Toast.makeText(HomeActivity.this, ""+e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
+
+        bottomSheetDialog.setContentView(sheetView);
+        bottomSheetDialog.show();
+
     }
 }
