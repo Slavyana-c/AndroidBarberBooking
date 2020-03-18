@@ -51,6 +51,21 @@ public class HomeActivity extends AppCompatActivity {
         userRef = FirebaseFirestore.getInstance().collection("User");
         dialog = new SpotsDialog.Builder().setContext(this).setCancelable(false).build();
 
+        // View
+        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            Fragment fragment = null;
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+                if(menuItem.getItemId() == R.id.action_home) {
+                    fragment = new HomeFragment();
+                }
+                else if(menuItem.getItemId() == R.id.action_shopping) {
+                    fragment = new ShoppingFragment();
+                }
+
+                return loadFragment(fragment);
+            }
+        });
 
 
         // Check intent
@@ -68,9 +83,16 @@ public class HomeActivity extends AppCompatActivity {
                 boolean isLoggedIn = accessToken != null && !accessToken.isExpired();
 
                 // if not registered
+                // TODO implement fb login / profile
                 if(!isLoggedIn) {
                     showUpdateDialog("email@email.com");
                 }
+                else {
+                     // if registered
+                    // TODO change to registered
+                    Common.currentUser = new User("Registered Name", "LE1", "mail@me.com");
+                    bottomNavigationView.setSelectedItemId(R.id.action_home);
+            }
 
                 if(dialog.isShowing())
                     dialog.dismiss();
@@ -78,23 +100,7 @@ public class HomeActivity extends AppCompatActivity {
             }
         }
 
-        // View
-        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-            Fragment fragment = null;
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
-                if(menuItem.getItemId() == R.id.action_home) {
-                    fragment = new HomeFragment();
-                }
-                else if(menuItem.getItemId() == R.id.action_shopping) {
-                    fragment = new ShoppingFragment();
-                }
 
-                return loadFragment(fragment);
-            }
-        });
-
-        bottomNavigationView.setSelectedItemId(R.id.action_home);
     }
 
     private boolean loadFragment(Fragment fragment) {
@@ -135,6 +141,11 @@ public class HomeActivity extends AppCompatActivity {
                         bottomSheetDialog.dismiss();
                         if(dialog.isShowing())
                             dialog.dismiss();
+
+                        Common.currentUser = user;
+                        Common.IS_LOGIN = "true";
+                        bottomNavigationView.setSelectedItemId(R.id.action_home);
+
                         Toast.makeText(HomeActivity.this, "Thank you", Toast.LENGTH_SHORT).show();
                     }
                 }).addOnFailureListener(new OnFailureListener() {
