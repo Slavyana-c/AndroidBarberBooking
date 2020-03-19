@@ -11,6 +11,10 @@ public class HomeSliderAdapter extends SliderAdapter {
 
     List<Banner> bannerList;
 
+    public HomeSliderAdapter(List<Banner> bannerList) {
+        this.bannerList = bannerList;
+    }
+
     @Override
     public int getItemCount() {
         return bannerList.size();
