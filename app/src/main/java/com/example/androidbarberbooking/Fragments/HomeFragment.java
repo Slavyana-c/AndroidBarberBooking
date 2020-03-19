@@ -5,6 +5,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
@@ -15,6 +16,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.androidbarberbooking.Adapter.HomeSliderAdapter;
+import com.example.androidbarberbooking.Adapter.LookbookAdapter;
 import com.example.androidbarberbooking.Common.Common;
 import com.example.androidbarberbooking.Interface.IBannerLoadListener;
 import com.example.androidbarberbooking.Interface.ILookbookLoadListener;
@@ -94,9 +96,32 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
         if(isLoggedIn || isLogin) {
             setUserInformation();
             loadBanner();
+            loadLookBook();
         }
 
         return view;
+    }
+
+    private void loadLookBook() {
+        lookbookRef .get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                List<Banner> lookbooks = new ArrayList<>();
+                if(task.isSuccessful()) {
+                    for(QueryDocumentSnapshot bannerSnapshot:task.getResult()) {
+                        Banner banner = bannerSnapshot.toObject(Banner.class);
+                        lookbooks.add(banner);
+                    }
+                    iLookbookLoadListener.onLookbookLoadSuccess(lookbooks);
+                }
+
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                iLookbookLoadListener.onLookbookLoadFailed(e.getMessage());
+            }
+        });
     }
 
     private void loadBanner() {
@@ -128,12 +153,14 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
 
     @Override
     public void onLookbookLoadSuccess(List<Banner> banners) {
-
+        recycler_look_book.setHasFixedSize(true);
+        recycler_look_book.setLayoutManager(new LinearLayoutManager(getActivity()));
+        recycler_look_book.setAdapter(new LookbookAdapter(getActivity(), banners));
     }
 
     @Override
     public void onLookbookLoadFailed(String message) {
-
+        Toast.makeText(getActivity(), message , Toast.LENGTH_SHORT).show();
     }
 
     @Override
