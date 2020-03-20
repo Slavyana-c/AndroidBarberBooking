@@ -44,5 +44,7 @@ dependencies {
     implementation 'com.github.d-max:spots-dialog:1.1@aar'
     implementation 'com.ss.bannerslider:bannerslider:2.0.0'
     implementation 'com.squareup.picasso:picasso:2.71828'
+    implementation 'com.shuhart.stepview:stepview:1.4.0'
+    implementation 'com.jaredrummler:material-spinner:1.3.1'
 
 }
