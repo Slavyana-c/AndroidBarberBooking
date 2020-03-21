@@ -6,6 +6,7 @@ import androidx.viewpager.widget.ViewPager;
 import android.os.Bundle;
 import android.widget.Button;
 
+import com.example.androidbarberbooking.Adapter.MyViewPagerAdapter;
 import com.shuhart.stepview.StepView;
 
 import java.util.ArrayList;
@@ -39,6 +40,30 @@ public class BookingActivity extends AppCompatActivity {
         setColorButton();
 
         // View
+        viewPager.setAdapter(new MyViewPagerAdapter(getSupportFragmentManager()));
+        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                if(position == 0) {
+                    btn_previous_step.setEnabled(false);
+                }
+                else {
+                    btn_previous_step.setEnabled(true );
+                }
+                setColorButton();
+
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
 
     }
 
