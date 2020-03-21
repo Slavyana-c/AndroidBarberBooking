@@ -92,11 +92,14 @@ public class HomeActivity extends AppCompatActivity {
                     // TODO change to registered
                     Common.currentUser = new User("Registered Name", "LE1", "mail@me.com");
                     bottomNavigationView.setSelectedItemId(R.id.action_home);
-            }
+                }
 
                 if(dialog.isShowing())
                     dialog.dismiss();
 
+            }
+            else {
+                bottomNavigationView.setSelectedItemId(R.id.action_shopping);
             }
         }
 
