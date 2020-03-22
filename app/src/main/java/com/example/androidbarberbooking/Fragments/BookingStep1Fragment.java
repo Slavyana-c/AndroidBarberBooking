@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.androidbarberbooking.Adapter.MySalonAdapter;
+import com.example.androidbarberbooking.Common.Common;
 import com.example.androidbarberbooking.Common.SpacesItemDecoration;
 import com.example.androidbarberbooking.Interface.IAllSalonLoadListener;
 import com.example.androidbarberbooking.Interface.IBranchLoadListener;
@@ -93,8 +94,6 @@ public class BookingStep1Fragment extends Fragment implements IAllSalonLoadListe
         recycler_salon.setHasFixedSize(true);
         recycler_salon.setLayoutManager(new GridLayoutManager(getActivity(), 2));
         recycler_salon.addItemDecoration(new SpacesItemDecoration(4));
-
-
     }
 
     private void loadAllSalons() {
@@ -137,6 +136,8 @@ public class BookingStep1Fragment extends Fragment implements IAllSalonLoadListe
     private void loadBranchOfCity(String cityName) {
         dialog.show();
 
+        Common.city = cityName;
+
         branchRef = FirebaseFirestore.getInstance()
                 .collection("AllSalons")
                 .document(cityName)
@@ -151,7 +152,7 @@ public class BookingStep1Fragment extends Fragment implements IAllSalonLoadListe
                       {
                           Salon salon = documentSnapshot.toObject(Salon.class);
                           salon.setSalonId(documentSnapshot.getId());
-                          list.add(salon);
+                          list.add(salon );
                       }
                       iBranchLoadListener.onBranchLoadSuccess(list);
                   }
