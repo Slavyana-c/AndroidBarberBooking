@@ -68,7 +68,7 @@ public class MyBarberAdapter extends RecyclerView.Adapter<MyBarberAdapter.MyView
                 Intent intent = new Intent(Common.KEY_ENABLE_BUTTON_NEXT);
                 intent.putExtra(Common.KEY_BARBER_SELECTED, barberList.get(pos));
                 intent.putExtra(Common.KEY_STEP, 2);
-                localBroadcastManager.sendBroadcast(intent);  
+                localBroadcastManager.sendBroadcast(intent);
 
             }
         });

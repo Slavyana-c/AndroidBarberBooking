@@ -13,6 +13,7 @@ public class Common {
     public static final String KEY_DISPLAY_TIME_SLOT = "DISPLAY_TIME_SLOT";
     public static final String KEY_STEP = "STEP";
     public static final String KEY_BARBER_SELECTED = "BARBER_SELECTED";
+    public static final int TIME_SLOT_TOTAL = 20 ;
     public static String IS_LOGIN = "IsLogin";
     public static User currentUser;
     public static Salon currentSalon;
