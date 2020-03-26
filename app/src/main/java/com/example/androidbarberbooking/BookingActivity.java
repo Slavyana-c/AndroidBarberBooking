@@ -192,6 +192,9 @@ public class BookingActivity extends AppCompatActivity {
                 else {
                     btn_previous_step.setEnabled(true );
                 }
+
+                // Disable next button
+                btn_next_step.setEnabled(false);
                 setColorButton();
 
             }

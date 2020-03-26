@@ -1,6 +1,7 @@
 package com.example.androidbarberbooking.Adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +13,7 @@ import androidx.cardview.widget.CardView;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.androidbarberbooking.Common.Common;
 import com.example.androidbarberbooking.Interface.IRecyclerItemSelectedListener;
 import com.example.androidbarberbooking.Model.Barber;
 import com.example.androidbarberbooking.R;
@@ -49,6 +51,28 @@ public class MyBarberAdapter extends RecyclerView.Adapter<MyBarberAdapter.MyView
         if(!cardViewList.contains(holder.card_barber))
             cardViewList.add(holder.card_barber);
 
+        holder.setiRecyclerItemSelectedListener(new IRecyclerItemSelectedListener() {
+            @Override
+            public void onItemSelectedListener(View view, int pos) {
+                // not selected
+                for(CardView cardView : cardViewList) {
+                    cardView.setCardBackgroundColor(context.getResources()
+                            .getColor(android.R.color.white));
+                }
+
+                // selected
+                holder.card_barber.setCardBackgroundColor(context.getResources()
+                            .getColor(android.R.color.holo_orange_dark));
+
+                // Send broadcast to enable next
+                Intent intent = new Intent(Common.KEY_ENABLE_BUTTON_NEXT);
+                intent.putExtra(Common.KEY_BARBER_SELECTED, barberList.get(pos));
+                intent.putExtra(Common.KEY_STEP, 2);
+                localBroadcastManager.sendBroadcast(intent);  
+
+            }
+        });
+
     }
 
     @Override
@@ -56,14 +80,17 @@ public class MyBarberAdapter extends RecyclerView.Adapter<MyBarberAdapter.MyView
         return barberList.size();
     }
 
-    public class MyViewHolder extends RecyclerView.ViewHolder {
+    public class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         TextView txt_barber_name;
         RatingBar ratingBar;
         CardView card_barber;
 
 
-        /// I WAS HERE
         IRecyclerItemSelectedListener iRecyclerItemSelectedListener;
+
+        public void setiRecyclerItemSelectedListener(IRecyclerItemSelectedListener iRecyclerItemSelectedListener) {
+            this.iRecyclerItemSelectedListener = iRecyclerItemSelectedListener;
+        }
 
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -71,6 +98,13 @@ public class MyBarberAdapter extends RecyclerView.Adapter<MyBarberAdapter.MyView
             card_barber = (CardView)itemView.findViewById(R.id.card_baber);
             this.txt_barber_name = (TextView)itemView.findViewById(R.id.txt_barber_name);
             ratingBar = (RatingBar)itemView.findViewById(R.id.rtb_barber);
+
+            itemView.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            iRecyclerItemSelectedListener.onItemSelectedListener(v, getAdapterPosition());
         }
     }
 }
