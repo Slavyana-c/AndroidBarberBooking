@@ -1,16 +1,16 @@
 package com.example.androidbarberbooking.Model;
 
 public class TimeSlot {
-    private long slot;
+    private Long slot;
 
     public TimeSlot() {
     }
 
-    public long getSlot() {
+    public Long getSlot() {
         return slot;
     }
 
-    public void setSlot(long slot) {
+    public void setSlot(Long slot) {
         this.slot = slot;
     }
 }
