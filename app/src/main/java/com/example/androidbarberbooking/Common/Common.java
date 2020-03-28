@@ -6,6 +6,8 @@ import com.example.androidbarberbooking.Model.Barber;
 import com.example.androidbarberbooking.Model.Salon;
 import com.example.androidbarberbooking.Model.User;
 
+import java.util.Calendar;
+
 public class Common {
     public static final String KEY_ENABLE_BUTTON_NEXT = "ENABLE_BUTTON_NEXT";
     public static final String KEY_SALON_STORE = "SALON_SAVE";
@@ -14,12 +16,17 @@ public class Common {
     public static final String KEY_STEP = "STEP";
     public static final String KEY_BARBER_SELECTED = "BARBER_SELECTED";
     public static final int TIME_SLOT_TOTAL = 20 ;
+    public static final Object DISABLE_TAG = "DISABLE";
+    public static final String KEY_TIME_SLOT = "TIME_SLOT";
+    public static final String KEY_CONFIRM_BOOKING = "CONFIRM_BOOKING";
     public static String IS_LOGIN = "IsLogin";
     public static User currentUser;
     public static Salon currentSalon;
     public static Barber currentBarber;
     public static int step = 0;
     public static String city = "";
+    public static int currentTimeSlot = -1 ;
+    public static Calendar currentDate = Calendar.getInstance();
 
     public static String convertTimeSlotToString(int slot) {
         switch (slot)
