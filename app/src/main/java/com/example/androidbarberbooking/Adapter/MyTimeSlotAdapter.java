@@ -14,6 +14,7 @@ import com.example.androidbarberbooking.Common.Common;
 import com.example.androidbarberbooking.Model.TimeSlot;
 import com.example.androidbarberbooking. R;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MyTimeSlotAdapter extends RecyclerView.Adapter<MyTimeSlotAdapter.MyViewHolder> {
@@ -21,6 +22,11 @@ public class MyTimeSlotAdapter extends RecyclerView.Adapter<MyTimeSlotAdapter.My
     Context context;
     List<TimeSlot> timeSlotList;
 
+
+    public MyTimeSlotAdapter(Context context) {
+        this.context = context;
+        this.timeSlotList = new ArrayList<>();
+    }
 
     public MyTimeSlotAdapter(Context context, List<TimeSlot> timeSlotList) {
         this.context = context;

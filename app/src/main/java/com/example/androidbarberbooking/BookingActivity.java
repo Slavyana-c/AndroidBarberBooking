@@ -146,7 +146,7 @@ public class BookingActivity extends AppCompatActivity {
 
             }
 
-            Common.currentSalon = intent.getParcelableExtra(Common.KEY_SALON_STORE);
+            //Common.currentSalon = intent.getParcelableExtra(Common.KEY_SALON_STORE);
             btn_next_step.setEnabled(true);
             setColorButton();
         }

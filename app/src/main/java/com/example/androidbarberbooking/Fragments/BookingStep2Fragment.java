@@ -42,7 +42,7 @@ public class BookingStep2Fragment extends Fragment {
             ArrayList<Barber> barberArrayList = intent.getParcelableArrayListExtra(Common.KEY_BARBER_LOAD_DONE);
 
             MyBarberAdapter adapter = new MyBarberAdapter(getContext(),barberArrayList);
-            recycler_barber.setAdapter(adapter );
+            recycler_barber.setAdapter(adapter);
         }
     };
 

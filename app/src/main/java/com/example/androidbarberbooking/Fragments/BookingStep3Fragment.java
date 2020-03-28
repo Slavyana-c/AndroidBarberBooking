@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,14 +18,25 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.androidbarberbooking.Adapter.MyTimeSlotAdapter;
 import com.example.androidbarberbooking.Common.Common;
 import com.example.androidbarberbooking.Common.SpacesItemDecoration;
 import com.example.androidbarberbooking.Interface.ITimeSlotLoadListener;
 import com.example.androidbarberbooking.Model.TimeSlot;
 import com.example.androidbarberbooking.R;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
+import java.sql.Time;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
@@ -62,9 +74,70 @@ public class BookingStep3Fragment extends Fragment implements ITimeSlotLoadListe
         }
     };
 
-    private void loadAvailableTimeSlotOfBarber(String barberId, String date ) {
+    private void loadAvailableTimeSlotOfBarber(String barberId, String bookDate ) {
         dialog.show();
 
+
+        barberDoc = FirebaseFirestore.getInstance()
+                .collection("AllSalons")
+                .document(Common.city)
+                .collection("Branch")
+                .document(Common.currentSalon.getSalonId())
+                .collection("Barber")
+                .document(Common.currentBarber.getBarberId());
+
+        // Get information for this barber
+        barberDoc.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if(task.isSuccessful()) {
+                    DocumentSnapshot documentSnapshot = task.getResult();
+                    if(documentSnapshot.exists()) { // If barber is available
+
+                        // Get booking information
+                        // If not created - return empty
+                        CollectionReference date = FirebaseFirestore.getInstance()
+                                .collection("AllSalons")
+                                .document(Common.city)
+                                .collection("Branch")
+                                .document(Common.currentSalon.getSalonId())
+                                .collection("Barber")
+                                .document(Common.currentBarber.getBarberId())
+                                .collection(bookDate);
+                        
+
+                        date.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                if(task.isSuccessful()) {
+                                    QuerySnapshot querySnapshot = task.getResult();
+                                    if(querySnapshot.isEmpty()) { // No Appointments
+                                        iTimeSlotLoadListener.onTimeSlotLoadEmpty();
+                                    }
+                                    else { // Some appointments
+                                        List<TimeSlot> timeSlots = new ArrayList<>();
+                                        for(QueryDocumentSnapshot document:task.getResult()) {
+                                            timeSlots.add(document.toObject(TimeSlot.class));
+                                        }
+                                        iTimeSlotLoadListener.onTimeSlotLoadSuccess(timeSlots);
+                                    }
+                                }
+
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                iTimeSlotLoadListener.onTimeSlotLoadFailed(e.getMessage());
+                            }
+                        });
+
+
+                    }
+
+
+                }
+            }
+        });
     }
 
     static BookingStep3Fragment instance;
@@ -147,17 +220,25 @@ public class BookingStep3Fragment extends Fragment implements ITimeSlotLoadListe
     }
 
     @Override
-    public void onTimeSlotLoadSuccess(List<TimeSlot> salonList) {
+    public void onTimeSlotLoadSuccess(List<TimeSlot> timeSlotList) {
+        MyTimeSlotAdapter adapter = new MyTimeSlotAdapter(getContext(), timeSlotList);
+        recycler_time_slot.setAdapter(adapter);
 
+        dialog.dismiss();
     }
 
     @Override
     public void onTimeSlotLoadFailed(String message) {
+        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+        dialog.dismiss();
 
     }
 
     @Override
     public void onTimeSlotLoadEmpty() {
+        MyTimeSlotAdapter adapter = new MyTimeSlotAdapter(getContext());
+        recycler_time_slot.setAdapter(adapter);
 
+        dialog.dismiss();
     }
 }
