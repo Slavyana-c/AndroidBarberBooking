@@ -104,7 +104,7 @@ public class BookingStep3Fragment extends Fragment implements ITimeSlotLoadListe
                                 .collection("Barber")
                                 .document(Common.currentBarber.getBarberId())
                                 .collection(bookDate);
-                        
+
 
                         date.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                             @Override
