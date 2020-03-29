@@ -3,6 +3,7 @@ package com.example.androidbarberbooking;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -27,6 +28,11 @@ import com.facebook.appevents.AppEventsLogger;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
+import com.karumi.dexter.Dexter;
+import com.karumi.dexter.MultiplePermissionsReport;
+import com.karumi.dexter.PermissionToken;
+import com.karumi.dexter.listener.PermissionRequest;
+import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,6 +40,7 @@ import org.json.JSONObject;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -80,65 +87,81 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        ButterKnife.bind(this);
 
-        final String EMAIL = "email";
-
-        LoginButton loginButton = (LoginButton) findViewById(R.id.login_button);
-        loginButton.setReadPermissions(Arrays.asList(EMAIL, "public_profile"));
-
-        FacebookSdk.sdkInitialize(this.getApplicationContext());
-        callbackManager = CallbackManager.Factory.create();
-
-        accessTokenTracker = new AccessTokenTracker() {
+        Dexter.withActivity(this)
+                .withPermissions(new String[] {
+                        Manifest.permission.READ_CALENDAR,
+                        Manifest.permission.WRITE_CALENDAR
+                }).withListener(new MultiplePermissionsListener() {
             @Override
-            protected void onCurrentAccessTokenChanged(
-                    AccessToken oldAccessToken,
-                    AccessToken currentAccessToken) {
-                // Set the access token using
-                // currentAccessToken when it's loaded or set.
+            public void onPermissionsChecked(MultiplePermissionsReport report) {
+                setContentView(R.layout.activity_main);
+                ButterKnife.bind(MainActivity.this);
+
+                final String EMAIL = "email";
+
+                LoginButton loginButton = (LoginButton) findViewById(R.id.login_button);
+                loginButton.setReadPermissions(Arrays.asList(EMAIL, "public_profile"));
+
+                FacebookSdk.sdkInitialize(MainActivity.this.getApplicationContext());
+                callbackManager = CallbackManager.Factory.create();
+
+                accessTokenTracker = new AccessTokenTracker() {
+                    @Override
+                    protected void onCurrentAccessTokenChanged(
+                            AccessToken oldAccessToken,
+                            AccessToken currentAccessToken) {
+                        // Set the access token using
+                        // currentAccessToken when it's loaded or set.
+                    }
+                };
+                // If the access token is available already assign it.
+                //AccessToken accessToken = AccessToken.getCurrentAccessToken();
+                AccessToken accessToken = AccessToken.getCurrentAccessToken();
+                boolean isLoggedIn = accessToken != null && !accessToken.isExpired();
+
+                if(isLoggedIn) {
+                    Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+                    intent.putExtra(Common.IS_LOGIN, true);
+                    startActivity(intent);
+                }
+
+
+                // If you are using in a fragment, call loginButton.setFragment(this);
+
+                // Callback registration
+                loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+                    @Override
+                    public void onSuccess(LoginResult loginResult) {
+
+
+                        Toast.makeText(MainActivity.this, "Successfully logged in", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+                        intent.putExtra(Common.IS_LOGIN, true);
+                        startActivity(intent);
+
+
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        // App code
+                    }
+
+                    @Override
+                    public void onError(FacebookException exception) {
+                        // App code
+                    }
+                });
+
+
             }
-        };
-        // If the access token is available already assign it.
-        //AccessToken accessToken = AccessToken.getCurrentAccessToken();
-        AccessToken accessToken = AccessToken.getCurrentAccessToken();
-        boolean isLoggedIn = accessToken != null && !accessToken.isExpired();
 
-        if(isLoggedIn) {
-            Intent intent = new Intent(MainActivity.this, HomeActivity.class);
-            intent.putExtra(Common.IS_LOGIN, true);
-            startActivity(intent);
-        }
-
-
-        // If you are using in a fragment, call loginButton.setFragment(this);
-
-        // Callback registration
-        loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
-            public void onSuccess(LoginResult loginResult) {
-
-
-                Toast.makeText(MainActivity.this, "Successfully logged in", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(MainActivity.this, HomeActivity.class);
-                intent.putExtra(Common.IS_LOGIN, true);
-                startActivity(intent);
-
+            public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
 
             }
-
-            @Override
-            public void onCancel() {
-                // App code
-            }
-
-            @Override
-            public void onError(FacebookException exception) {
-                // App code
-            }
-        });
-
+        }).check();
 
 
 

@@ -56,9 +56,17 @@ public class BookingStep4Fragment extends Fragment {
     @OnClick(R.id.btn_confirm)
     void confirmBooking() {
 
+        // Process timestamp
+        // Display only future bookings
+        String startTime = Common.convertTimeSlotToString(Common.currentTimeSlot);
+        String[] convertTime = startTime.split("-"); // 9:00 - 10:00
+        String[] startTimeConvert = convertTime[0].split(":");
+        //int startHourInt
+
         // Create booking information
         BookingInformation bookingInformation = new BookingInformation();
 
+        bookingInformation.setDone(false);
         bookingInformation.setBarberId(Common.currentBarber.getBarberId());
         bookingInformation.setBarberName(Common.currentBarber.getName());
         bookingInformation.setCustomerName(Common.currentUser.getName());
@@ -66,7 +74,7 @@ public class BookingStep4Fragment extends Fragment {
         bookingInformation.setSalonId(Common.currentSalon.getSalonId());
         bookingInformation.setSalonAddress(Common.currentSalon.getAddress());
         bookingInformation.setSalonName(Common.currentSalon.getName());
-        bookingInformation.setTime(new StringBuilder(simpleDateFormat.format(Common.currentDate.getTime()))
+        bookingInformation.setTime(new StringBuilder(simpleDateFormat.format(Common.bookingDate.getTime()))
                 .append(" at ")
                 .append(Common.convertTimeSlotToString(Common.currentTimeSlot)).toString());
         bookingInformation.setSlot(Long.valueOf(Common.currentTimeSlot));
@@ -79,7 +87,7 @@ public class BookingStep4Fragment extends Fragment {
                 .document(Common.currentSalon.getSalonId())
                 .collection("Barber")
                 .document(Common.currentBarber.getBarberId())
-                .collection(Common.simpleDateFormat.format(Common.currentDate.getTime()))
+                .collection(Common.simpleDateFormat.format(Common.bookingDate.getTime()))
                 .document(String.valueOf(Common.currentTimeSlot));
 
         // Write data
@@ -105,7 +113,7 @@ public class BookingStep4Fragment extends Fragment {
         Common.currentTimeSlot = -1;
         Common.currentSalon = null;
         Common.currentBarber = null;
-        Common.currentDate.add(Calendar.DATE, 0);
+        Common.bookingDate.add(Calendar.DATE, 0);
     }
 
     BroadcastReceiver confirmBookingReceiver = new BroadcastReceiver() {
@@ -118,7 +126,7 @@ public class BookingStep4Fragment extends Fragment {
 
     private void setData() {
         txt_booking_barber_text.setText(Common.currentBarber.getName());
-        txt_booking_time_text.setText(new StringBuilder(simpleDateFormat.format(Common.currentDate.getTime()))
+        txt_booking_time_text.setText(new StringBuilder(simpleDateFormat.format(Common.bookingDate.getTime()))
                 .append(" at ")
                 .append(Common.convertTimeSlotToString(Common.currentTimeSlot)).toString());
 
