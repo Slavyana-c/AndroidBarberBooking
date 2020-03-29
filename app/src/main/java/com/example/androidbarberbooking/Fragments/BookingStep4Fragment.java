@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,12 +17,20 @@ import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.example.androidbarberbooking.Common.Common;
+import com.example.androidbarberbooking.Model.BookingInformation;
 import com.example.androidbarberbooking.R;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import butterknife.Unbinder;
 
 public class BookingStep4Fragment extends Fragment {
@@ -44,6 +53,60 @@ public class BookingStep4Fragment extends Fragment {
     TextView txt_salon_phone;
     @BindView(R.id.txt_salon_website)
     TextView txt_salon_website;
+    @OnClick(R.id.btn_confirm)
+    void confirmBooking() {
+
+        // Create booking information
+        BookingInformation bookingInformation = new BookingInformation();
+
+        bookingInformation.setBarberId(Common.currentBarber.getBarberId());
+        bookingInformation.setBarberName(Common.currentBarber.getName());
+        bookingInformation.setCustomerName(Common.currentUser.getName());
+        bookingInformation.setCustomerEmail(Common.currentUser.getEmail());
+        bookingInformation.setSalonId(Common.currentSalon.getSalonId());
+        bookingInformation.setSalonAddress(Common.currentSalon.getAddress());
+        bookingInformation.setSalonName(Common.currentSalon.getName());
+        bookingInformation.setTime(new StringBuilder(simpleDateFormat.format(Common.currentDate.getTime()))
+                .append(" at ")
+                .append(Common.convertTimeSlotToString(Common.currentTimeSlot)).toString());
+        bookingInformation.setSlot(Long.valueOf(Common.currentTimeSlot));
+
+        // Submit to Barber document
+        DocumentReference bookingDate = FirebaseFirestore.getInstance()
+                .collection("AllSalons")
+                .document(Common.city)
+                .collection("Branch")
+                .document(Common.currentSalon.getSalonId())
+                .collection("Barber")
+                .document(Common.currentBarber.getBarberId())
+                .collection(Common.simpleDateFormat.format(Common.currentDate.getTime()))
+                .document(String.valueOf(Common.currentTimeSlot));
+
+        // Write data
+        bookingDate.set(bookingInformation)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        resetStaticData();
+                        getActivity().finish(); // Close Activity
+                        Toast.makeText(getContext(), "Success!", Toast.LENGTH_SHORT).show();
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(getContext(), "" + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+    }
+
+    private void resetStaticData() {
+        Common.step = 0;
+        Common.currentTimeSlot = -1;
+        Common.currentSalon = null;
+        Common.currentBarber = null;
+        Common.currentDate.add(Calendar.DATE, 0);
+    }
 
     BroadcastReceiver confirmBookingReceiver = new BroadcastReceiver() {
         @Override
@@ -56,11 +119,15 @@ public class BookingStep4Fragment extends Fragment {
     private void setData() {
         txt_booking_barber_text.setText(Common.currentBarber.getName());
         txt_booking_time_text.setText(new StringBuilder(simpleDateFormat.format(Common.currentDate.getTime()))
-                        .append(" at ")
-                .append(Common.convertTimeSlotToString(Common.currentTimeSlot)));
+                .append(" at ")
+                .append(Common.convertTimeSlotToString(Common.currentTimeSlot)).toString());
 
-        // Address here
         txt_salon_address.setText(Common.currentSalon.getAddress());
+        txt_salon_website.setText(Common.currentSalon.getWebsite());
+        txt_salon_name.setText(Common.currentSalon.getName());
+        txt_salon_phone.setText(Common.currentSalon.getPhone());
+        txt_salon_open_hours.setText(Common.currentSalon.getOpenHours());
+
 
     }
 

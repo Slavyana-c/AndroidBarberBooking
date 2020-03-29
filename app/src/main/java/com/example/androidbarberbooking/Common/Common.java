@@ -6,6 +6,7 @@ import com.example.androidbarberbooking.Model.Barber;
 import com.example.androidbarberbooking.Model.Salon;
 import com.example.androidbarberbooking.Model.User;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 public class Common {
@@ -27,6 +28,7 @@ public class Common {
     public static String city = "";
     public static int currentTimeSlot = -1 ;
     public static Calendar currentDate = Calendar.getInstance();
+    public static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd_MM_yyyy");
 
     public static String convertTimeSlotToString(int slot) {
         switch (slot)
