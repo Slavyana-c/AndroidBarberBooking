@@ -1,6 +1,6 @@
 package com.example.androidbarberbooking.Model;
 
-import java.sql.Timestamp;
+import com.google.firebase.Timestamp;
 
 public class BookingInformation {
     private String customerName, customerEmail, time, barberId, barberName, salonId, salonName, salonAddress;
