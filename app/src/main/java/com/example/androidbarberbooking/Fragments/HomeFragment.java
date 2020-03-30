@@ -56,15 +56,24 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
 
     @BindView(R.id.layout_user_information )
     LinearLayout layout_user_information;
-
     @BindView(R.id.txt_user_name)
     TextView  txt_user_name;
-
     @BindView(R.id.banner_slider)
     Slider banner_slider;
-
     @BindView(R.id.recycler_look_book)
     RecyclerView recycler_look_book;
+
+    @BindView(R.id.card_booking_info)
+    CardView card_booking_info;
+    @BindView(R.id.txt_salon_address)
+    TextView txt_salon_address;
+    @BindView(R.id.txt_salon_barber)
+    TextView txt_salon_barber;
+    @BindView(R.id.txt_time)
+    TextView txt_time;
+    @BindView(R.id.txt_time_remain)
+    TextView txt_time_remain;
+
 
     @OnClick(R.id.card_view_booking)
     void booking() {
@@ -84,6 +93,12 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
         lookbookRef = FirebaseFirestore.getInstance().collection("Lookbook");
     }
 
+    @Override
+    public void onResume() {
+
+        // CONTINUE HERE
+        super.onResume();
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
