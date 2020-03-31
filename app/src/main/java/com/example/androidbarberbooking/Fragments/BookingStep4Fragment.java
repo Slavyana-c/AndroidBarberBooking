@@ -9,8 +9,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.CalendarContract;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -143,10 +145,11 @@ public class BookingStep4Fragment extends Fragment {
 
 
         // Create new collection
-        CollectionReference userBooking = FirebaseFirestore.getInstance()
+        final CollectionReference userBooking = FirebaseFirestore.getInstance()
                 .collection("User")
                 .document(Common.currentUser.getEmail())
                 .collection("Booking");
+
 
         // Check if document exists in this collection
         userBooking.whereEqualTo("done", false).get()
@@ -183,6 +186,7 @@ public class BookingStep4Fragment extends Fragment {
 
                             if(dialog.isShowing())
                                 dialog.dismiss();
+                            addToCalendar(Common.bookingDate, Common.convertTimeSlotToString(Common.currentTimeSlot));
 
                             resetStaticData();
                             getActivity().finish(); // Close Activity
@@ -255,10 +259,16 @@ public class BookingStep4Fragment extends Fragment {
             String timeZone = TimeZone.getDefault().getID();
             event.put(CalendarContract.Events.EVENT_TIMEZONE, timeZone);
 
-            Uri calendars = Uri.parse("content://com.android.calendar/calendars");
+            Uri baseUri;
+            if (Build.VERSION.SDK_INT >= 8) {
+                baseUri = Uri.parse("content://com.android.calendar/events");
+            } else {
+                baseUri = Uri.parse("content://calendar/events");
+            }
+            getActivity().getContentResolver().insert(baseUri, event);
 
-            getActivity().getContentResolver().insert(calendars, event);
 
+            Log.d("Not dead?", "addToDeviceCalendar: tried");
 
         } catch (ParseException e) {
             e.printStackTrace();

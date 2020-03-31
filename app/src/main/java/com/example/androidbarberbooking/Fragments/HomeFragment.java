@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,20 +23,25 @@ import com.example.androidbarberbooking.Adapter.LookbookAdapter;
 import com.example.androidbarberbooking.BookingActivity;
 import com.example.androidbarberbooking.Common.Common;
 import com.example.androidbarberbooking.Interface.IBannerLoadListener;
+import com.example.androidbarberbooking.Interface.IBookingInfoLoadListener;
 import com.example.androidbarberbooking.Interface.ILookbookLoadListener;
 import com.example.androidbarberbooking.Model.Banner;
+import com.example.androidbarberbooking.Model.BookingInformation;
 import com.example.androidbarberbooking.R;
 import com.example.androidbarberbooking.Service.PicassoImageLoadingService;
 import com.facebook.AccessToken;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.sql.Time;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import butterknife.BindView;
@@ -49,7 +55,7 @@ import static com.example.androidbarberbooking.Common.Common.IS_LOGIN;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class HomeFragment extends Fragment implements ILookbookLoadListener, IBannerLoadListener {
+public class HomeFragment extends Fragment implements ILookbookLoadListener, IBannerLoadListener, IBookingInfoLoadListener {
 
 
     private Unbinder unbinder;
@@ -86,6 +92,7 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
     // Interface
     IBannerLoadListener iBannerLoadListener;
     ILookbookLoadListener iLookbookLoadListener;
+    IBookingInfoLoadListener iBookingInfoLoadListener;
 
 
     public HomeFragment() {
@@ -98,6 +105,55 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
 
         // CONTINUE HERE
         super.onResume();
+        loadUserBooking();
+    }
+
+    private void loadUserBooking() {
+        CollectionReference userBooking = FirebaseFirestore.getInstance()
+                .collection("User")
+                .document(Common.currentUser.getEmail())
+                .collection("Booking");
+
+        // Get current date
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DATE, 0);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+
+        Timestamp toDayTimeStamp = new Timestamp(calendar.getTime());
+
+        // Select booking information from Firebase where timestamp >= today and done=false
+        userBooking
+                .whereGreaterThanOrEqualTo("timestamp", toDayTimeStamp)
+                .whereEqualTo("done", false)
+                .limit(1) // take 1
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if(task.isSuccessful()) {
+                            if(!task.getResult().isEmpty()) {
+                                for(QueryDocumentSnapshot queryDocumentSnapshot:task.getResult()) {
+                                    BookingInformation bookingInformation = queryDocumentSnapshot.toObject(BookingInformation.class);
+                                    iBookingInfoLoadListener.onBookingInfoLoadSuccess(bookingInformation);
+                                    break; // Exit loop as soon as possible
+                                }
+
+                            }
+                            else {
+                                iBookingInfoLoadListener.onBookingInfoLoadEmpty();
+
+                            }
+                        }
+
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                iBookingInfoLoadListener.onBookingInfoLoadFailed(e.getMessage() );
+
+            }
+        });
     }
 
     @Override
@@ -111,6 +167,7 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
         Slider.init(new PicassoImageLoadingService());
         iBannerLoadListener = this;
         iLookbookLoadListener = this;
+        iBookingInfoLoadListener = this;
 
         // Check if logged
         AccessToken accessToken = AccessToken.getCurrentAccessToken();
@@ -121,13 +178,14 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
             setUserInformation();
             loadBanner();
             loadLookBook();
+            loadUserBooking();
         }
 
         return view;
     }
 
     private void loadLookBook() {
-        lookbookRef .get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+        lookbookRef.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
                 List<Banner> lookbooks = new ArrayList<>();
@@ -196,6 +254,34 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
     @Override
     public void onBannerLoadFailed(String message) {
         Toast.makeText(getActivity(), message , Toast.LENGTH_SHORT).show();
+
+    }
+
+    @Override
+    public void onBookingInfoLoadEmpty() {
+        card_booking_info.setVisibility(View.GONE);
+
+    }
+
+    @Override
+    public void onBookingInfoLoadSuccess(BookingInformation bookingInformation) {
+        txt_salon_address.setText(bookingInformation.getSalonAddress());
+        txt_salon_barber.setText(bookingInformation.getBarberName());
+        txt_time.setText(bookingInformation.getTime());
+        String dateRemain = DateUtils.getRelativeTimeSpanString(
+                Long.valueOf(bookingInformation.getTimestamp().toDate().getTime()),
+                Calendar.getInstance().getTimeInMillis(), 0).toString();
+
+        txt_time_remain.setText(dateRemain);
+
+        card_booking_info.setVisibility(View.VISIBLE );
+
+
+    }
+
+    @Override
+    public void onBookingInfoLoadFailed(String message) {
+        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
 
     }
 }
