@@ -186,7 +186,8 @@ public class BookingStep4Fragment extends Fragment {
 
                             if(dialog.isShowing())
                                 dialog.dismiss();
-                            addToCalendar(Common.bookingDate, Common.convertTimeSlotToString(Common.currentTimeSlot));
+
+                            addToCalendar(Common.bookingDate, Common.convertTimeSlotToString(Common.currentTimeSlot)); // comment for only 1 booking per user
 
                             resetStaticData();
                             getActivity().finish(); // Close Activity
