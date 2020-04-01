@@ -3,7 +3,7 @@ package com.example.androidbarberbooking.Model;
 import com.google.firebase.Timestamp;
 
 public class BookingInformation {
-    private String customerName, customerEmail, time, barberId, barberName, salonId, salonName, salonAddress;
+    private String cityBook, customerName, customerEmail, time, barberId, barberName, salonId, salonName, salonAddress;
     private Long slot;
     private Timestamp timestamp;
     private boolean done;
@@ -109,5 +109,13 @@ public class BookingInformation {
 
     public void setDone(boolean done) {
         this.done = done;
+    }
+
+    public String getCityBook() {
+        return cityBook;
+    }
+
+    public void setCityBook(String cityBook) {
+        this.cityBook = cityBook;
     }
 }

@@ -49,6 +49,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
 import dmax.dialog.SpotsDialog;
+import io.paperdb.Paper;
 
 public class BookingStep4Fragment extends Fragment {
 
@@ -96,6 +97,7 @@ public class BookingStep4Fragment extends Fragment {
         // Create booking information
         BookingInformation bookingInformation = new BookingInformation();
 
+        bookingInformation.setCityBook(Common.city);
         bookingInformation.setTimestamp(timestamp);
         bookingInformation.setDone(false);
         bookingInformation.setBarberId(Common.currentBarber.getBarberId());
@@ -152,7 +154,17 @@ public class BookingStep4Fragment extends Fragment {
 
 
         // Check if document exists in this collection
-        userBooking.whereEqualTo("done", false).get()
+        // Get current date
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DATE, 0);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+
+        Timestamp todayTimeStamp = new Timestamp(calendar.getTime());
+
+        userBooking
+                .whereGreaterThanOrEqualTo("timestamp", todayTimeStamp)
+                .whereEqualTo("done", false).get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
@@ -266,10 +278,13 @@ public class BookingStep4Fragment extends Fragment {
             } else {
                 baseUri = Uri.parse("content://calendar/events");
             }
-            getActivity().getContentResolver().insert(baseUri, event);
+
+            Uri uri_save = getActivity().getContentResolver().insert(baseUri, event);
+            // Save to cache
+            Paper.init(getActivity());
+            Paper.book().write(Common.EVENT_URI_CACHE, uri_save.toString());
 
 
-            Log.d("Not dead?", "addToDeviceCalendar: tried");
 
         } catch (ParseException e) {
             e.printStackTrace();

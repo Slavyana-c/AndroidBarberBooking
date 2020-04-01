@@ -32,9 +32,11 @@ import com.example.androidbarberbooking.Service.PicassoImageLoadingService;
 import com.facebook.AccessToken;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -80,6 +82,48 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
     @BindView(R.id.txt_time_remain)
     TextView txt_time_remain;
 
+    @OnClick(R.id.btn_delete_booking)
+    void deleteBooking() {
+        deleteBookingFromUser();
+    }
+
+    private void deleteBookingFromUser() {
+        // 1) Delete from Barber
+        // 2) Delete from User
+        // 3) Delete event
+
+        if(Common.currentBooking != null) {
+            // Get booking information in barber object
+            DocumentReference barberBookingInfo = FirebaseFirestore.getInstance()
+                    .collection("AllSalons")
+                    .document(Common.currentBooking.getCityBook())
+                    .collection("Branch")
+                    .document(Common.currentBooking.getSalonId())
+                    .collection("Barber")
+                    .document(Common.currentBooking.getBarberId())
+                    .collection(Common.convertTimeStampToStringKey(Common.currentBooking.getTimestamp()))
+                    .document(Common.currentBooking.getSlot().toString());
+
+            // Delete
+            barberBookingInfo.delete().addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }).addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    // Delete from User
+                }
+            });
+
+        } else {
+            Toast.makeText(getContext(), "Current Booking must not be null", Toast.LENGTH_SHORT).show();
+        }
+
+
+    }
+
 
     @OnClick(R.id.card_view_booking)
     void booking() {
@@ -120,11 +164,11 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
 
-        Timestamp toDayTimeStamp = new Timestamp(calendar.getTime());
+        Timestamp todayTimeStamp = new Timestamp(calendar.getTime());
 
         // Select booking information from Firebase where timestamp >= today and done=false
         userBooking
-                .whereGreaterThanOrEqualTo("timestamp", toDayTimeStamp)
+                .whereGreaterThanOrEqualTo("timestamp", todayTimeStamp)
                 .whereEqualTo("done", false)
                 .limit(1) // take 1
                 .get()
@@ -135,7 +179,7 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
                             if(!task.getResult().isEmpty()) {
                                 for(QueryDocumentSnapshot queryDocumentSnapshot:task.getResult()) {
                                     BookingInformation bookingInformation = queryDocumentSnapshot.toObject(BookingInformation.class);
-                                    iBookingInfoLoadListener.onBookingInfoLoadSuccess(bookingInformation);
+                                    iBookingInfoLoadListener.onBookingInfoLoadSuccess(bookingInformation, queryDocumentSnapshot.getId());
                                     break; // Exit loop as soon as possible
                                 }
 
@@ -264,7 +308,11 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
     }
 
     @Override
-    public void onBookingInfoLoadSuccess(BookingInformation bookingInformation) {
+    public void onBookingInfoLoadSuccess(BookingInformation bookingInformation, String bookingId) {
+
+        Common.currentBooking = bookingInformation;
+        Common.currentBookingId = bookingId;
+
         txt_salon_address.setText(bookingInformation.getSalonAddress());
         txt_salon_barber.setText(bookingInformation.getBarberName());
         txt_time.setText(bookingInformation.getTime());
