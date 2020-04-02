@@ -2,6 +2,7 @@ package com.example.androidbarberbooking.Fragments;
 
 
 import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -13,6 +14,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.os.IBinder;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
@@ -28,6 +30,7 @@ import com.example.androidbarberbooking.BookingActivity;
 import com.example.androidbarberbooking.Common.Common;
 import com.example.androidbarberbooking.Interface.IBannerLoadListener;
 import com.example.androidbarberbooking.Interface.IBookingInfoLoadListener;
+import com.example.androidbarberbooking.Interface.IBookingInformationChangeListener;
 import com.example.androidbarberbooking.Interface.ILookbookLoadListener;
 import com.example.androidbarberbooking.Model.Banner;
 import com.example.androidbarberbooking.Model.BookingInformation;
@@ -63,7 +66,7 @@ import static com.example.androidbarberbooking.Common.Common.IS_LOGIN;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class HomeFragment extends Fragment implements ILookbookLoadListener, IBannerLoadListener, IBookingInfoLoadListener {
+public class HomeFragment extends Fragment implements ILookbookLoadListener, IBannerLoadListener, IBookingInfoLoadListener, IBookingInformationChangeListener {
 
 
     private Unbinder unbinder;
@@ -98,6 +101,32 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
         // 3) Delete event
 
         deleteBookingFromBarber(false);
+    }
+
+    @OnClick(R.id.btn_change_booking)
+    void changeBooking()  {
+        changeBookingFromUser();
+    }
+
+    private void changeBookingFromUser() {
+        // Show dialog
+        AlertDialog.Builder confirmDialog = new AlertDialog.Builder(getActivity())
+                .setCancelable(false)
+                .setTitle("Confirm")
+                .setMessage("Are you sure you want to change your booking?\nYour current booking will be deleted.")
+                .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                }).setPositiveButton("CHANGE", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        deleteBookingFromBarber(true);
+
+                    }
+                });
+                confirmDialog.show();
     }
 
     private void deleteBookingFromBarber(boolean isChanged) {
@@ -166,12 +195,18 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
                     // Refresh
                     loadUserBooking();
 
-                    // Check if it's changed
+                    // Check if booking has changed
+                    if(isChanged) {
+                        iBookingInformationChangeListener.onBookingInformationChange();
+                    }
+                    dialog.dismiss();
+
                 }
             });
 
         }
         else {
+            dialog.dismiss();
             Toast.makeText(getContext(), "Booking information must not be empty", Toast.LENGTH_SHORT).show();
         }
     }
@@ -189,6 +224,7 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
     IBannerLoadListener iBannerLoadListener;
     ILookbookLoadListener iLookbookLoadListener;
     IBookingInfoLoadListener iBookingInfoLoadListener;
+    IBookingInformationChangeListener iBookingInformationChangeListener;
 
 
     public HomeFragment() {
@@ -273,6 +309,7 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
         iBannerLoadListener = this;
         iLookbookLoadListener = this;
         iBookingInfoLoadListener = this;
+        iBookingInformationChangeListener = this;
 
         // Check if logged
         AccessToken accessToken = AccessToken.getCurrentAccessToken();
@@ -385,9 +422,8 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
 
         card_booking_info.setVisibility(View.VISIBLE );
 
-        if(dialog.isShowing()) {
-            dialog.dismiss();
-        }
+        dialog.dismiss();
+
 
 
     }
@@ -396,5 +432,11 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
     public void onBookingInfoLoadFailed(String message) {
         Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
 
+    }
+
+    @Override
+    public void onBookingInformationChange() {
+        // Start activity Booking
+        startActivity(new Intent(getActivity(), BookingActivity.class));
     }
 }
