@@ -1,15 +1,19 @@
 package com.example.androidbarberbooking.Fragments;
 
 
+import android.app.AlertDialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -50,6 +54,8 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
+import dmax.dialog.SpotsDialog;
+import io.paperdb.Paper;
 import ss.com.bannerslider.Slider;
 
 import static com.example.androidbarberbooking.Common.Common.IS_LOGIN;
@@ -61,6 +67,8 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
 
 
     private Unbinder unbinder;
+
+    AlertDialog dialog;
 
     @BindView(R.id.layout_user_information )
     LinearLayout layout_user_information;
@@ -84,15 +92,20 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
 
     @OnClick(R.id.btn_delete_booking)
     void deleteBooking() {
-        deleteBookingFromUser();
-    }
 
-    private void deleteBookingFromUser() {
         // 1) Delete from Barber
         // 2) Delete from User
         // 3) Delete event
 
+        deleteBookingFromBarber(false);
+    }
+
+    private void deleteBookingFromBarber(boolean isChanged) {
+
         if(Common.currentBooking != null) {
+
+            dialog.show();
+
             // Get booking information in barber object
             DocumentReference barberBookingInfo = FirebaseFirestore.getInstance()
                     .collection("AllSalons")
@@ -114,6 +127,7 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
                 @Override
                 public void onSuccess(Void aVoid) {
                     // Delete from User
+                    deleteBookingFromUser(isChanged);
                 }
             });
 
@@ -122,6 +136,44 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
         }
 
 
+    }
+
+    private void deleteBookingFromUser(boolean isChanged) {
+        if(!TextUtils.isEmpty(Common.currentBookingId)) {
+            DocumentReference userBookingInfo = FirebaseFirestore.getInstance()
+                    .collection("User")
+                    .document(Common.currentUser.getEmail())
+                    .collection("Booking")
+                    .document(Common.currentBookingId);
+
+            // Delete
+            userBookingInfo.delete().addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+
+                }
+            }).addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    // Delete from Calendar
+                    Paper.init(getActivity());
+                    Uri eventUri = Uri.parse(Paper.book().read(Common.EVENT_URI_CACHE).toString());
+                    getActivity().getContentResolver().delete(eventUri, null, null);
+
+                    Toast.makeText(getActivity(), "Booking deleted successfully!", Toast.LENGTH_SHORT).show();
+
+                    // Refresh
+                    loadUserBooking();
+
+                    // Check if it's changed
+                }
+            });
+
+        }
+        else {
+            Toast.makeText(getContext(), "Booking information must not be empty", Toast.LENGTH_SHORT).show();
+        }
     }
 
 
@@ -142,6 +194,7 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
     public HomeFragment() {
         bannerRef = FirebaseFirestore.getInstance().collection("Banner");
         lookbookRef = FirebaseFirestore.getInstance().collection("Lookbook");
+
     }
 
     @Override
@@ -198,6 +251,14 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
 
             }
         });
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        dialog = new SpotsDialog.Builder().setContext(getContext()).setCancelable(false).build();
+
     }
 
     @Override
@@ -323,6 +384,10 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
         txt_time_remain.setText(dateRemain);
 
         card_booking_info.setVisibility(View.VISIBLE );
+
+        if(dialog.isShowing()) {
+            dialog.dismiss();
+        }
 
 
     }

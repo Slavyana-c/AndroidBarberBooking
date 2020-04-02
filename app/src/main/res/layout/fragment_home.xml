@@ -199,7 +199,7 @@
         <androidx.cardview.widget.CardView
             android:id="@+id/card_booking_info"
             app:cardCornerRadius="8dp"
-            android:visibility="visible"
+            android:visibility="gone"
             android:layout_marginLeft="8dp"
             android:layout_marginRight="8dp"
             android:layout_width="match_parent"
