@@ -27,10 +27,11 @@
         android:layout_height="wrap_content"
         android:layout_above="@id/txt_skip"
         android:background="@color/colorButton"
+        android:backgroundTint="@color/colorButton"
         android:fontFamily="@font/bellerose"
         android:text="Login"
         android:textColor="@android:color/white"
-        android:textSize="22sp" />
+        android:textSize="20sp" />
 
     <com.facebook.login.widget.LoginButton
         android:id="@+id/login_button"
@@ -44,18 +45,18 @@
 
     <TextView
         android:id="@+id/textView"
-        android:layout_width="285dp"
-        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_height="173dp"
         android:layout_above="@+id/btn_login"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
         android:layout_marginStart="59dp"
         android:layout_marginTop="162dp"
-        android:layout_marginEnd="59dp"
-        android:layout_marginBottom="292dp"
+        android:layout_marginEnd="67dp"
+        android:layout_marginBottom="258dp"
         android:fontFamily="@font/bellerose"
-        android:text="Fabyoulo"
+        android:text="Barber"
         android:textAlignment="center"
         android:textColor="@android:color/white"
         android:textSize="80sp" />
