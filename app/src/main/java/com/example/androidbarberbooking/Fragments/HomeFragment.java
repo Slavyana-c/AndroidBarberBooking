@@ -47,6 +47,7 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.nex3z.notificationbadge.NotificationBadge;
 
 import java.sql.Time;
 import java.util.ArrayList;
@@ -72,6 +73,9 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
     private Unbinder unbinder;
 
     AlertDialog dialog;
+
+    @BindView(R.id.notification_badge)
+    NotificationBadge notificationBadge;
 
     @BindView(R.id.layout_user_information )
     LinearLayout layout_user_information;
