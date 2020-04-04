@@ -1,7 +1,7 @@
 package com.example.androidbarberbooking.Model;
 
 public class ShoppingItem {
-    private String name, image;
+    private String id, name, image;
     private double price;
 
     public ShoppingItem() {
@@ -29,5 +29,13 @@ public class ShoppingItem {
 
     public void setPrice(double price) {
         this.price = price;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 }
