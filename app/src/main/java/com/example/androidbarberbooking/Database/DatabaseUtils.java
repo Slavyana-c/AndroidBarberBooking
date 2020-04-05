@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.example.androidbarberbooking.Common.Common;
+import com.example.androidbarberbooking.Interface.ICartItemLoadListener;
 import com.example.androidbarberbooking.Interface.ICountItemsInCartListener;
 
 import java.util.List;
@@ -12,9 +13,11 @@ import java.util.List;
 public class DatabaseUtils {
 
     // Handle on another thread
-    public static void getAllItemsFromCart(CartDatabase db) {
-        GetAllCartAsync task = new GetAllCartAsync(db);
-        task.execute(Common.currentUser.getEmail());
+
+    public static void getAllCart(CartDatabase db, ICartItemLoadListener cartItemLoadListener) {
+        GetAllCartAsync task = new GetAllCartAsync(db, cartItemLoadListener);
+        task.execute();
+
     }
 
     public static void insertToCart(CartDatabase db, CartItem... cartItems) {
@@ -32,23 +35,18 @@ public class DatabaseUtils {
     * Define Async tasks
     */
 
-    private static class GetAllCartAsync extends AsyncTask<String,Void,Void> {
+    private static class GetAllCartAsync extends AsyncTask<String,Void,List<CartItem>> {
 
         CartDatabase db;
-        public GetAllCartAsync(CartDatabase cartDatabase) {
+        ICartItemLoadListener listener;
+
+        public GetAllCartAsync(CartDatabase cartDatabase, ICartItemLoadListener iCartItemLoadListener) {
             db = cartDatabase;
+            listener = iCartItemLoadListener;
         }
-
         @Override
-        protected Void doInBackground(String... strings) {
-            getAllItemsFromCartByUserEmail(db, strings[0]);
-            return null;
-        }
-
-        private void getAllItemsFromCartByUserEmail(CartDatabase db, String userEmail) {
-            List<CartItem> cartItems = db.cartDAO().getAllItemsFromCart(userEmail);
-            Log.d("COUNT_CART", ""+cartItems.size());
-
+        protected List<CartItem> doInBackground(String... strings) {
+            return db.cartDAO().getAllItemsFromCart(Common.currentUser.getEmail());
         }
     }
 

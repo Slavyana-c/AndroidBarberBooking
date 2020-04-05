@@ -14,7 +14,6 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.os.IBinder;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
@@ -27,6 +26,7 @@ import android.widget.Toast;
 import com.example.androidbarberbooking.Adapter.HomeSliderAdapter;
 import com.example.androidbarberbooking.Adapter.LookbookAdapter;
 import com.example.androidbarberbooking.BookingActivity;
+import com.example.androidbarberbooking.CartActivity;
 import com.example.androidbarberbooking.Common.Common;
 import com.example.androidbarberbooking.Database.CartDatabase;
 import com.example.androidbarberbooking.Database.DatabaseUtils;
@@ -52,7 +52,6 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.nex3z.notificationbadge.NotificationBadge;
 
-import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -224,6 +223,11 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
     @OnClick(R.id.card_view_booking)
     void booking() {
         startActivity(new Intent(getActivity(), BookingActivity.class));
+    }
+
+    @OnClick(R.id.card_view_cart)
+    void openCartActivity() {
+        startActivity(new Intent(getActivity(), CartActivity.class));
     }
 
     // FireStore
