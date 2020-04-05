@@ -11,6 +11,10 @@ import java.util.List;
 
 @Dao
 public interface CartDAO {
+
+    @Query("SELECT SUM(productPrice*productQuantity) FROM Cart WHERE userEmail=:userEmail")
+    double sumPrice(String userEmail);
+
     @Query("SELECT * FROM Cart WHERE userEmail=:userEmail")
     List<CartItem> getAllItemsFromCart (String userEmail);
 

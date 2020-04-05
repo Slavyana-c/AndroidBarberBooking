@@ -10,17 +10,20 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.androidbarberbooking.Adapter.MyCartAdapter;
 import com.example.androidbarberbooking.Database.CartDatabase;
 import com.example.androidbarberbooking.Database.CartItem;
 import com.example.androidbarberbooking.Database.DatabaseUtils;
 import com.example.androidbarberbooking.Interface.ICartItemLoadListener;
+import com.example.androidbarberbooking.Interface.ICartItemUpdateListener;
+import com.example.androidbarberbooking.Interface.ISumCartListener;
 
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class CartActivity extends AppCompatActivity implements ICartItemLoadListener {
+public class CartActivity extends AppCompatActivity implements ICartItemLoadListener, ICartItemUpdateListener, ISumCartListener {
 
     @BindView(R.id.recycler_cart)
     RecyclerView recycler_cart;
@@ -50,6 +53,19 @@ public class CartActivity extends AppCompatActivity implements ICartItemLoadList
     @Override
     public void onGetAllItemsFromCartSuccess(List<CartItem> cartItemList) {
         // Display items from db in recycler view
+        MyCartAdapter adapter = new MyCartAdapter(this, cartItemList, this);
+        recycler_cart.setAdapter(adapter);
 
+    }
+
+    @Override
+    public void onCartItemUpdateSuccess() {
+        DatabaseUtils.sumCart(cartDatabase, this);
+
+    }
+
+    @Override
+    public void onSumCartSuccess(double value) {
+        txt_total_price.setText(new StringBuilder("$ ").append(value));
     }
 }
