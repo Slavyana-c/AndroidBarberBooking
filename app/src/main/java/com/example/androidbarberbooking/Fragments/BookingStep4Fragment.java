@@ -26,6 +26,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.example.androidbarberbooking.Common.Common;
 import com.example.androidbarberbooking.Model.BookingInformation;
+import com.example.androidbarberbooking.Model.MyNotification;
 import com.example.androidbarberbooking.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -43,6 +44,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.UUID;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -176,14 +178,36 @@ public class BookingStep4Fragment extends Fragment {
                                         @Override
                                         public void onSuccess(Void aVoid) {
 
-                                            if(dialog.isShowing())
-                                                dialog.dismiss();
+                                            // Create notification
+                                            MyNotification myNotification = new MyNotification();
+                                            myNotification.setUid(UUID.randomUUID().toString());
+                                            myNotification.setTitle("New Booking");
+                                            myNotification.setContent("You have a new appointment!");
+                                            myNotification.setRead(false);
 
+                                            // Submit Notification to 'Notifications' collection of Barber
+                                            FirebaseFirestore.getInstance()
+                                                    .collection("AllSalons")
+                                                    .document(Common.city)
+                                                    .collection("Branch")
+                                                    .document(Common.currentSalon.getSalonId())
+                                                    .collection("Barber")
+                                                    .document(Common.currentBarber.getBarberId())
+                                                    .collection("Notifications")
+                                                    .document(myNotification.getUid())
+                                                    .set(myNotification)
+                                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                        @Override
+                                                        public void onSuccess(Void aVoid) {
+                                                            dialog.dismiss();
 
-                                            addToCalendar(Common.bookingDate, Common.convertTimeSlotToString(Common.currentTimeSlot));
-                                            resetStaticData();
-                                            getActivity().finish(); // Close Activity
-                                            Toast.makeText(getContext(), "Success!", Toast.LENGTH_SHORT).show();
+                                                            addToCalendar(Common.bookingDate, Common.convertTimeSlotToString(Common.currentTimeSlot));
+                                                            resetStaticData();
+                                                            getActivity().finish();
+                                                            Toast.makeText(getContext(), "Success!", Toast.LENGTH_SHORT).show();
+                                                        }
+                                                    });
+
                                         }
                                     }) .addOnFailureListener(new OnFailureListener() {
                                 @Override
