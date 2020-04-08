@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
@@ -29,6 +30,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+
+import io.paperdb.Paper;
 
 public class Common {
     public static final String KEY_ENABLE_BUTTON_NEXT = "ENABLE_BUTTON_NEXT";
@@ -114,7 +117,6 @@ public class Common {
     public static String formatShoppingItemName(String name) {
         return name.length() > 13 ? new StringBuilder(name.substring(0,10)).append("...").toString() : name;
     }
-
     public static void showNotification(Context context, int noti_id, String title, String content, Intent intent) {
         PendingIntent pendingIntent = null;
         if(intent != null) {
@@ -123,40 +125,42 @@ public class Common {
                     noti_id,
                     intent,
                     PendingIntent.FLAG_UPDATE_CURRENT);
-
-            String NOTIFICATION_CHANNEL_ID = "barber_client_app";
-            NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-                NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "My Notifications",
-                        NotificationManager.IMPORTANCE_DEFAULT);
-
-                // Configure the notification channel
-                notificationChannel.setDescription("Channel description");
-                notificationChannel.enableLights(true);
-                notificationChannel.setLightColor(Color.RED);
-                notificationChannel.setVibrationPattern(new long[]{0, 1000, 500, 1000});
-                notificationChannel.enableVibration(true);
-                notificationManager.createNotificationChannel(notificationChannel);
-            }
-
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID);
-            builder
-                    .setContentTitle(title)
-                    .setContentText(content)
-                    .setAutoCancel(true)
-                    .setSmallIcon(R.mipmap.ic_launcher)
-                    .setLargeIcon(BitmapFactory.decodeResource(context.getResources(), R.mipmap.ic_launcher));
-
-
-            if(pendingIntent != null)
-                builder.setContentIntent(pendingIntent);
-            Notification mNotification = builder.build();
-
-            notificationManager.notify(noti_id, mNotification);
-
         }
+        String NOTIFICATION_CHANNEL_ID = "barber_staff_app";
+        NotificationManager notificationManager = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID,
+                    "Barber Booking Staff App ",
+                    NotificationManager.IMPORTANCE_DEFAULT);
+
+            // Configure the notification channel
+            notificationChannel.setDescription("Staff app");
+            notificationChannel.enableLights(true);
+            notificationChannel.setLightColor(Color.RED);
+            notificationChannel.setVibrationPattern(new long[]{0, 1000, 500, 1000});
+            notificationChannel.enableVibration(true);
+            notificationManager.createNotificationChannel(notificationChannel);
+        }
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID);
+        builder
+                .setContentTitle(title)
+                .setContentText(content)
+                .setAutoCancel(false)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setLargeIcon(BitmapFactory.decodeResource(context.getResources(), R.mipmap.ic_launcher));
+
+
+        if(pendingIntent != null)
+            builder.setContentIntent(pendingIntent);
+        Notification mNotification = builder.build();
+
+        notificationManager.notify(noti_id, mNotification);
+
+
     }
+
 
     public static enum TOKEN_TYPE {
         CLIENT,
@@ -164,25 +168,30 @@ public class Common {
         MANAGER
     }
 
-    public static void updateToken(String s) {
-        AccessToken accessToken = AccessToken.getCurrentAccessToken();
+    public static void updateToken(String token) {
 
-        if(accessToken != null) {
-            MyToken myToken = new MyToken();
-            myToken.setToken(s);
-            myToken.setToken_type(TOKEN_TYPE.CLIENT);
-            myToken.setUserEmail(currentUser.getEmail());
 
-            FirebaseFirestore.getInstance()
-                    .collection("Tokens")
-                    .document(currentUser.getEmail())
-                    .set(myToken)
-                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
+        String userEmail = Common.currentUser.getEmail();
 
-                        }
-                    });
+        if(userEmail != null) {
+            if(!TextUtils.isEmpty(userEmail)) {
+                MyToken myToken= new MyToken();
+                myToken.setToken(token);
+                myToken.setToken_type(Common.TOKEN_TYPE.BARBER);
+                myToken.setUserEmail(userEmail);
+
+                // Submit to FireStore
+                FirebaseFirestore.getInstance()
+                        .collection("Tokens")
+                        .document(userEmail)
+                        .set(myToken)
+                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                            }
+                        });
+            }
         }
+
     }
 }

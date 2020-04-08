@@ -5,7 +5,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -16,13 +18,17 @@ import com.example.androidbarberbooking.Fragments.HomeFragment;
 import com.example.androidbarberbooking.Fragments.ShoppingFragment;
 import com.example.androidbarberbooking.Model.User;
 import com.facebook.AccessToken;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 
 import java.util.Collection;
 
@@ -96,6 +102,24 @@ public class HomeActivity extends AppCompatActivity {
 
                 if(dialog.isShowing())
                     dialog.dismiss();
+
+
+                FirebaseInstanceId.getInstance()
+                        .getInstanceId()
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Toast.makeText(HomeActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+                        }).addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                        if(task.isSuccessful()) {
+                            Common.updateToken(task.getResult().getToken());
+                            Log.d("TOKEN", task.getResult().getToken());
+                        }
+                    }
+                });
 
             }
             else {
