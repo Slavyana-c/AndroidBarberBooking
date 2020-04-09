@@ -199,7 +199,7 @@ public class BookingStep4Fragment extends Fragment {
                                             MyNotification myNotification = new MyNotification();
                                             myNotification.setUid(UUID.randomUUID().toString());
                                             myNotification.setTitle("New Booking");
-                                            myNotification.setContent("You have a new appointment!");
+                                            myNotification.setContent("You have a new appointment with " + Common.currentUser.getName());
                                             myNotification.setRead(false);
                                             myNotification.setServerTimestamp(FieldValue.serverTimestamp());
 
@@ -235,7 +235,7 @@ public class BookingStep4Fragment extends Fragment {
                                                                                 FCMSendData sendRequest = new FCMSendData();
                                                                                 Map<String, String> dataSend = new HashMap<>();
                                                                                 dataSend.put(Common.TITLE_KEY, "New Booking");
-                                                                                dataSend.put(Common.CONTENT_KEY, "You have new booking from user " + Common.currentUser.getName());
+                                                                                dataSend.put(Common.CONTENT_KEY, "You have new notification from " + Common.currentUser.getName());
 
                                                                                 sendRequest.setTo(myToken.getToken());
                                                                                 sendRequest.setData(dataSend);
