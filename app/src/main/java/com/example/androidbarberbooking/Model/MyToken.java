@@ -3,19 +3,19 @@ package com.example.androidbarberbooking.Model;
 import com.example.androidbarberbooking.Common.Common;
 
 public class MyToken {
-    private String userEmail;
+    private String user;
     private Common.TOKEN_TYPE token_type;
     private String token;
 
     public MyToken() {
     }
 
-    public String getUserEmail() {
-        return userEmail;
+    public String getUser() {
+        return user;
     }
 
-    public void setUserEmail(String userEmail) {
-        this.userEmail = userEmail;
+    public void setUser(String user) {
+        this.user = user;
     }
 
     public Common.TOKEN_TYPE getToken_type() {

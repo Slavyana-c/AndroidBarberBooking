@@ -194,9 +194,22 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
                 @Override
                 public void onSuccess(Void aVoid) {
                     // Delete from Calendar
-                    Paper.init(getActivity());
-                    Uri eventUri = Uri.parse(Paper.book().read(Common.EVENT_URI_CACHE).toString());
-                    getActivity().getContentResolver().delete(eventUri, null, null);
+                    try {
+                        Paper.init(getActivity());
+                        if(Paper.book().read(Common.EVENT_URI_CACHE) != null) {
+                            String eventString = Paper.book().read(Common.EVENT_URI_CACHE).toString();
+                            Uri eventUri = null;
+                            if(eventString != null && !TextUtils.isEmpty(eventString)) {
+                                eventUri = Uri.parse(eventString);
+                            }
+                            if(eventUri != null) {
+                                getActivity().getContentResolver().delete(eventUri, null, null);
+                            }
+                        }
+                    } catch(Exception e) {
+
+                    }
+
 
                     Toast.makeText(getActivity(), "Booking deleted successfully!", Toast.LENGTH_SHORT).show();
 

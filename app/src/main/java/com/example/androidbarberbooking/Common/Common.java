@@ -178,7 +178,7 @@ public class Common {
                 MyToken myToken= new MyToken();
                 myToken.setToken(token);
                 myToken.setToken_type(Common.TOKEN_TYPE.BARBER);
-                myToken.setUserEmail(userEmail);
+                myToken.setUser(userEmail);
 
                 // Submit to FireStore
                 FirebaseFirestore.getInstance()

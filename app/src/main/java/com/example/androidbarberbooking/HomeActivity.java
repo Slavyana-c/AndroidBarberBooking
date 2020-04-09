@@ -98,28 +98,29 @@ public class HomeActivity extends AppCompatActivity {
                     // TODO change to registered
                     Common.currentUser = new User("Registered Name", "LE1", "mail@me.com");
                     bottomNavigationView.setSelectedItemId(R.id.action_home);
+                    FirebaseInstanceId.getInstance()
+                            .getInstanceId()
+                            .addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Toast.makeText(HomeActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                }
+                            }).addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                            if(task.isSuccessful()) {
+                                Common.updateToken(task.getResult().getToken());
+                                Log.d("TOKEN", task.getResult().getToken());
+                            }
+                        }
+                    });
                 }
 
                 if(dialog.isShowing())
                     dialog.dismiss();
 
 
-                FirebaseInstanceId.getInstance()
-                        .getInstanceId()
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Toast.makeText(HomeActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                            }
-                        }).addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
-                        if(task.isSuccessful()) {
-                            Common.updateToken(task.getResult().getToken());
-                            Log.d("TOKEN", task.getResult().getToken());
-                        }
-                    }
-                });
+
 
             }
             else {
@@ -174,6 +175,23 @@ public class HomeActivity extends AppCompatActivity {
                         bottomNavigationView.setSelectedItemId(R.id.action_home);
 
                         Toast.makeText(HomeActivity.this, "Thank you", Toast.LENGTH_SHORT).show();
+
+                        FirebaseInstanceId.getInstance()
+                                .getInstanceId()
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Toast.makeText(HomeActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                }).addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                            @Override
+                            public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                                if(task.isSuccessful()) {
+                                    Common.updateToken(task.getResult().getToken());
+                                    Log.d("TOKEN", task.getResult().getToken());
+                                }
+                            }
+                        });
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
