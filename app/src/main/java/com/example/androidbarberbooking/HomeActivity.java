@@ -7,6 +7,7 @@ import androidx.fragment.app.Fragment;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,8 +30,11 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.util.Collection;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -47,6 +51,30 @@ public class HomeActivity extends AppCompatActivity {
     CollectionReference userRef;
 
     AlertDialog dialog;
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        
+        checkRatingDialog();
+    }
+
+    private void checkRatingDialog() {
+        Paper.init(this);
+        String dataSerialized  = Paper.book().read(Common.RATING_INFORMATION_KEY, "");
+        if(!TextUtils.isEmpty(dataSerialized)) { // If not null
+            Map<String,String> dataReceived = new Gson()
+                    .fromJson(dataSerialized, new TypeToken<Map<String,String>>(){}.getType());
+
+            if(dataReceived != null) {
+                Common.showRatingDialog(HomeActivity.this,
+                        dataReceived.get(Common.RATING_STATE_KEY),
+                        dataReceived.get(Common.RATING_SALON_ID),
+                        dataReceived.get(Common.RATING_SALON_NAME),
+                        dataReceived.get(Common.RATING_BARBER_ID));
+            }
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,8 +151,6 @@ public class HomeActivity extends AppCompatActivity {
 
                 if(dialog.isShowing())
                     dialog.dismiss();
-
-
 
 
             }
