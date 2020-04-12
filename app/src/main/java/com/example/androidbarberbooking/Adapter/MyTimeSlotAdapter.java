@@ -9,13 +9,15 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.androidbarberbooking.Common.Common;
 import com.example.androidbarberbooking.Interface.IRecyclerItemSelectedListener;
+import com.example.androidbarberbooking.Model.EventBus.EnableNextButton;
 import com.example.androidbarberbooking.Model.TimeSlot;
 import com.example.androidbarberbooking. R;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,20 +27,17 @@ public class MyTimeSlotAdapter extends RecyclerView.Adapter<MyTimeSlotAdapter.My
     Context context;
     List<TimeSlot> timeSlotList;
     List<CardView> cardViewList;
-    LocalBroadcastManager localBroadcastManager;
 
 
     public MyTimeSlotAdapter(Context context) {
         this.context = context;
         this.timeSlotList = new ArrayList<>();
-        this.localBroadcastManager = LocalBroadcastManager.getInstance(context);
         cardViewList = new ArrayList<>();
     }
 
     public MyTimeSlotAdapter(Context context, List<TimeSlot> timeSlotList) {
         this.context = context;
         this.timeSlotList = timeSlotList;
-        this.localBroadcastManager = LocalBroadcastManager.getInstance(context);
         cardViewList = new ArrayList<>();
     }
 
@@ -99,11 +98,9 @@ public class MyTimeSlotAdapter extends RecyclerView.Adapter<MyTimeSlotAdapter.My
                     // Selected card
                     holder.card_time_slot.setCardBackgroundColor(context.getResources().getColor(android.R.color.holo_orange_dark));
 
-                    // Enable NEXT
-                    Intent intent = new Intent(Common.KEY_ENABLE_BUTTON_NEXT);
-                    intent.putExtra(Common.KEY_TIME_SLOT, position); // Index of selected time slot
-                    intent.putExtra(Common.KEY_STEP, 3); // Go to step 3
-                    localBroadcastManager.sendBroadcast(intent);
+                    // EventBus
+                    EventBus.getDefault()
+                            .postSticky(new EnableNextButton(3, pos));
 
                 }
             }

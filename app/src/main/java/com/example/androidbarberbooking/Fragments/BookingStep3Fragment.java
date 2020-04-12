@@ -1,7 +1,6 @@
 package com.example.androidbarberbooking.Fragments;
 
 import android.app.AlertDialog;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -14,7 +13,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -22,6 +20,7 @@ import com.example.androidbarberbooking.Adapter.MyTimeSlotAdapter;
 import com.example.androidbarberbooking.Common.Common;
 import com.example.androidbarberbooking.Common.SpacesItemDecoration;
 import com.example.androidbarberbooking.Interface.ITimeSlotLoadListener;
+import com.example.androidbarberbooking.Model.EventBus.DisplayTimeSlotEvent;
 import com.example.androidbarberbooking.Model.TimeSlot;
 import com.example.androidbarberbooking.R;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -34,7 +33,10 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
-import java.sql.Time;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -55,7 +57,6 @@ public class BookingStep3Fragment extends Fragment implements ITimeSlotLoadListe
     AlertDialog dialog;
 
     Unbinder unbinder;
-    LocalBroadcastManager localBroadcastManager;
 
     @BindView(R.id.recycler_time_slot)
     RecyclerView recycler_time_slot;
@@ -63,15 +64,33 @@ public class BookingStep3Fragment extends Fragment implements ITimeSlotLoadListe
     HorizontalCalendarView calendarView;
     SimpleDateFormat simpleDateFormat;
 
-    BroadcastReceiver displayTimeSlot= new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
+    // Event Bus Start
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    public void onStop() {
+        EventBus.getDefault().unregister(this);
+        super.onStop();
+    }
+
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    public void loadAllTimeSlotsAvailable(DisplayTimeSlotEvent event) {
+        if(event.isDisplay()) {
             Calendar date = Calendar.getInstance();
             date.add(Calendar.DATE, 0); // Add current date
             loadAvailableTimeSlotOfBarber(Common.currentBarber.getBarberId(),
                     simpleDateFormat.format(date.getTime()));
         }
-    };
+
+    }
+
+//    =============================
+
 
     private void loadAvailableTimeSlotOfBarber(String barberId, String bookDate ) {
         dialog.show();
@@ -154,19 +173,10 @@ public class BookingStep3Fragment extends Fragment implements ITimeSlotLoadListe
 
         iTimeSlotLoadListener = this;
 
-        localBroadcastManager = LocalBroadcastManager.getInstance(getContext());
-        localBroadcastManager.registerReceiver(displayTimeSlot, new IntentFilter(Common.KEY_DISPLAY_TIME_SLOT));
-
         simpleDateFormat = new SimpleDateFormat("dd_MM_yyyy");
 
         dialog = new SpotsDialog.Builder().setContext(getContext()).setCancelable(false).build();
 
-    }
-
-    @Override
-    public void onDestroy() {
-        localBroadcastManager.unregisterReceiver(displayTimeSlot );
-        super.onDestroy();
     }
 
     @Nullable

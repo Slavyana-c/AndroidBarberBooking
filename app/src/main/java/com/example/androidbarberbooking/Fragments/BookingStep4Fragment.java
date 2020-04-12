@@ -1,7 +1,6 @@
 package com.example.androidbarberbooking.Fragments;
 
 import android.app.AlertDialog;
-import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -22,10 +21,11 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.example.androidbarberbooking.Common.Common;
 import com.example.androidbarberbooking.Model.BookingInformation;
+import com.example.androidbarberbooking.Model.EventBus.ConfirmBookingEvent;
+import com.example.androidbarberbooking.Model.EventBus.DisplayTimeSlotEvent;
 import com.example.androidbarberbooking.Model.FCMResponse;
 import com.example.androidbarberbooking.Model.FCMSendData;
 import com.example.androidbarberbooking.Model.MyNotification;
@@ -44,6 +44,10 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.sql.Time;
 import java.text.ParseException;
@@ -71,7 +75,6 @@ public class BookingStep4Fragment extends Fragment {
 
     CompositeDisposable compositeDisposable = new CompositeDisposable();
     SimpleDateFormat simpleDateFormat;
-    LocalBroadcastManager localBroadcastManager;
     Unbinder unbinder;
 
     IFCMApi ifcmApi;
@@ -433,13 +436,29 @@ public class BookingStep4Fragment extends Fragment {
         Common.bookingDate.add(Calendar.DATE, 0);
     }
 
-    BroadcastReceiver confirmBookingReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            setData();
+    // Event Bus Start
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    public void onStop() {
+        EventBus.getDefault().unregister(this);
+        super.onStop();
+    }
+
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    public void setDataBooking(ConfirmBookingEvent event) {
+        if(event.isConfirm()) {
+            setData();
         }
-    };
+
+    }
+
+//    =============================
 
     private void setData() {
         txt_booking_barber_text.setText(Common.currentBarber.getName());
@@ -474,15 +493,11 @@ public class BookingStep4Fragment extends Fragment {
         // Date format on confirm view
         simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
 
-        localBroadcastManager = LocalBroadcastManager.getInstance(getContext());
-        localBroadcastManager.registerReceiver(confirmBookingReceiver, new IntentFilter(Common.KEY_CONFIRM_BOOKING));
-
         dialog = new SpotsDialog.Builder().setContext(getContext()).setCancelable(false).build() ;
     }
 
     @Override
     public void onDestroy() {
-        localBroadcastManager.unregisterReceiver(confirmBookingReceiver );
         compositeDisposable.clear();
         super.onDestroy();
     }

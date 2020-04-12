@@ -10,13 +10,15 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.androidbarberbooking.Common.Common;
 import com.example.androidbarberbooking.Interface.IRecyclerItemSelectedListener;
 import com.example.androidbarberbooking.Model.Barber;
+import com.example.androidbarberbooking.Model.EventBus.EnableNextButton;
 import com.example.androidbarberbooking.R;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -27,13 +29,11 @@ public class MyBarberAdapter extends RecyclerView.Adapter<MyBarberAdapter.MyView
     Context context;
     List<Barber> barberList;
     List<CardView> cardViewList;
-    LocalBroadcastManager localBroadcastManager;
 
     public MyBarberAdapter(Context context, List<Barber> barberList) {
         this.context = context;
         this.barberList = barberList;
         this.cardViewList = new ArrayList<>();
-        localBroadcastManager = LocalBroadcastManager.getInstance(context);
     }
 
     @NonNull
@@ -69,11 +69,8 @@ public class MyBarberAdapter extends RecyclerView.Adapter<MyBarberAdapter.MyView
                 holder.card_barber.setCardBackgroundColor(context.getResources()
                             .getColor(android.R.color.holo_orange_dark));
 
-                // Send broadcast to enable next
-                Intent intent = new Intent(Common.KEY_ENABLE_BUTTON_NEXT);
-                intent.putExtra(Common.KEY_BARBER_SELECTED, barberList.get(pos));
-                intent.putExtra(Common.KEY_STEP, 2);
-                localBroadcastManager.sendBroadcast(intent);
+                // Eventbus
+                EventBus.getDefault().postSticky(new EnableNextButton(2, barberList.get(pos)));
 
             }
         });
