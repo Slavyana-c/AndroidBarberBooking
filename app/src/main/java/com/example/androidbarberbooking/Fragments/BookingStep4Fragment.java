@@ -249,7 +249,12 @@ public class BookingStep4Fragment extends Fragment {
 
                                                                                                 dialog.dismiss();
 
-                                                                                                addToCalendar(Common.bookingDate, Common.convertTimeSlotToString(Common.currentTimeSlot));
+                                                                                                try{
+                                                                                                    addToCalendar(Common.bookingDate, Common.convertTimeSlotToString(Common.currentTimeSlot));
+                                                                                                }
+                                                                                                catch(Exception e) {
+                                                                                                    Toast.makeText(getContext(), "Setup Google Calendar to add a reminder.", Toast.LENGTH_SHORT).show();
+                                                                                                }
                                                                                                 resetStaticData();
                                                                                                 getActivity().finish();
                                                                                                 Toast.makeText(getContext(), "Success!", Toast.LENGTH_SHORT).show();

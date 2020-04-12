@@ -35,6 +35,7 @@ import java.util.Collection;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import dmax.dialog.SpotsDialog;
+import io.paperdb.Paper;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -109,12 +110,16 @@ public class HomeActivity extends AppCompatActivity {
                         @Override
                         public void onComplete(@NonNull Task<InstanceIdResult> task) {
                             if(task.isSuccessful()) {
-                                Common.updateToken(task.getResult().getToken());
+                                Common.updateToken(getBaseContext(), task.getResult().getToken());
                                 Log.d("TOKEN", task.getResult().getToken());
+                                Paper.init(HomeActivity.this);
+                                Paper.book().write(Common.LOGGED_KEY, Common.currentUser.getEmail());
                             }
                         }
                     });
                 }
+
+
 
                 if(dialog.isShowing())
                     dialog.dismiss();
@@ -187,8 +192,10 @@ public class HomeActivity extends AppCompatActivity {
                             @Override
                             public void onComplete(@NonNull Task<InstanceIdResult> task) {
                                 if(task.isSuccessful()) {
-                                    Common.updateToken(task.getResult().getToken());
+                                    Common.updateToken(getBaseContext(),task.getResult().getToken());
                                     Log.d("TOKEN", task.getResult().getToken());
+                                    Paper.init(HomeActivity.this);
+                                    Paper.book().write(Common.LOGGED_KEY, Common.currentUser.getEmail());
                                 }
                             }
                         });

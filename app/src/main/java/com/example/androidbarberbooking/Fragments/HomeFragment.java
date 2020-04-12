@@ -47,7 +47,10 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.nex3z.notificationbadge.NotificationBadge;
@@ -252,6 +255,8 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
     IBookingInfoLoadListener iBookingInfoLoadListener;
     IBookingInformationChangeListener iBookingInformationChangeListener;
 
+    ListenerRegistration userBookingListener = null;
+    com.google.firebase.firestore.EventListener<QuerySnapshot> userBookingEvent = null;
 
     public HomeFragment() {
         bannerRef = FirebaseFirestore.getInstance().collection("Banner");
@@ -313,6 +318,16 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
 
             }
         });
+
+        // Make real time listener
+         if(userBookingEvent != null) {
+             if(userBookingListener == null) {
+                 userBookingListener = userBooking
+                         .addSnapshotListener(userBookingEvent);
+             }
+
+
+         }
     }
 
     @Override
@@ -348,11 +363,25 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
             setUserInformation();
             loadBanner();
             loadLookBook();
+            initRealTimeUserBooking();
             loadUserBooking();
             countCartItems();
         }
 
         return view;
+    }
+
+    private void initRealTimeUserBooking() {
+        if(userBookingEvent == null) {
+            userBookingEvent = new EventListener<QuerySnapshot>() {
+
+                @Override
+                public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
+                    loadUserBooking();
+
+                }
+            };
+        }
     }
 
     private void countCartItems() {
@@ -476,5 +505,13 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
     @Override
     public void onCartItemsCountSuccess(int count) {
         notificationBadge.setText(String.valueOf(count));
+    }
+
+    @Override
+    public void onDestroy() {
+        if(userBookingListener != null) {
+            userBookingListener.remove();
+        }
+        super.onDestroy();
     }
 }

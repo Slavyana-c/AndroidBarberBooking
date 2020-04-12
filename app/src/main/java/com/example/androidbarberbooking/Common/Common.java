@@ -10,6 +10,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
 import android.text.TextUtils;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
@@ -47,6 +48,7 @@ public class Common {
     public static final String EVENT_URI_CACHE = "URI_EVENT_SAVE";
     public static final String TITLE_KEY = "title";
     public static final String CONTENT_KEY = "content";
+    public static final String LOGGED_KEY = "UserLogged";
     public static String IS_LOGIN = "IsLogin";
     public static User currentUser;
     public static Salon currentSalon;
@@ -168,10 +170,10 @@ public class Common {
         MANAGER
     }
 
-    public static void updateToken(String token) {
-
+    public static void updateToken(Context context, String token) {
 
         String userEmail = Common.currentUser.getEmail();
+
 
         if(userEmail != null) {
             if(!TextUtils.isEmpty(userEmail)) {
@@ -190,6 +192,28 @@ public class Common {
                             public void onComplete(@NonNull Task<Void> task) {
                             }
                         });
+            }
+        } else {
+            Paper.init(context);
+            String user = Paper.book().read(Common.LOGGED_KEY);
+            if(user != null) {
+                if(!TextUtils.isEmpty(user)) {
+                    MyToken myToken= new MyToken();
+                    myToken.setToken(token);
+                    myToken.setToken_type(Common.TOKEN_TYPE.BARBER);
+                    myToken.setUser(userEmail);
+
+                    // Submit to FireStore
+                    FirebaseFirestore.getInstance()
+                            .collection("Tokens")
+                            .document(userEmail)
+                            .set(myToken)
+                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                }
+                            });
+                }
             }
         }
 
