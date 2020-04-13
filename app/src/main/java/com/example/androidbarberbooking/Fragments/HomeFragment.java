@@ -30,6 +30,7 @@ import com.example.androidbarberbooking.CartActivity;
 import com.example.androidbarberbooking.Common.Common;
 import com.example.androidbarberbooking.Database.CartDatabase;
 import com.example.androidbarberbooking.Database.DatabaseUtils;
+import com.example.androidbarberbooking.HistoryActivity;
 import com.example.androidbarberbooking.Interface.IBannerLoadListener;
 import com.example.androidbarberbooking.Interface.IBookingInfoLoadListener;
 import com.example.androidbarberbooking.Interface.IBookingInformationChangeListener;
@@ -244,6 +245,11 @@ public class HomeFragment extends Fragment implements ILookbookLoadListener, IBa
     @OnClick(R.id.card_view_cart)
     void openCartActivity() {
         startActivity(new Intent(getActivity(), CartActivity.class));
+    }
+
+    @OnClick(R.id.card_view_history)
+    void openHistoryActivity() {
+        startActivity(new Intent(getActivity(), HistoryActivity.class));
     }
 
     // FireStore

@@ -55,6 +55,10 @@ public class MyTimeSlotAdapter extends RecyclerView.Adapter<MyTimeSlotAdapter.My
 
         // all slots are available
         if(timeSlotList.size() == 0) {
+
+            // all cards are enabled
+            holder.card_time_slot.setEnabled(true);
+
             holder.card_time_slot.setCardBackgroundColor( context.getResources().getColor(android.R.color.white));
             holder.txt_time_slot_description.setText("Available");
             holder.txt_time_slot_description.setTextColor(context.getResources().getColor(android.R.color.black));
@@ -70,6 +74,7 @@ public class MyTimeSlotAdapter extends RecyclerView.Adapter<MyTimeSlotAdapter.My
                  if(slot == position) {
 
                      // Can't select full slot
+                     holder.card_time_slot.setEnabled(false);
                      holder.card_time_slot.setTag(Common.DISABLE_TAG);
                      holder.card_time_slot.setCardBackgroundColor( context.getResources().getColor(android.R.color.darker_gray));
 
@@ -105,7 +110,6 @@ public class MyTimeSlotAdapter extends RecyclerView.Adapter<MyTimeSlotAdapter.My
                 }
             }
         });
-
     }
 
     @Override
