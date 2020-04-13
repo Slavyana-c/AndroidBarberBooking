@@ -22,6 +22,7 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 public class CartActivity extends AppCompatActivity implements ICartItemLoadListener, ICartItemUpdateListener, ISumCartListener {
 
@@ -29,8 +30,16 @@ public class CartActivity extends AppCompatActivity implements ICartItemLoadList
     RecyclerView recycler_cart;
     @BindView(R.id.txt_total_price)
     TextView txt_total_price;
-    @BindView(R.id.btn_submit_cart)
-    Button btn_submit_cart;
+    @BindView(R.id.btn_clear_cart)
+    Button btn_clear_cart;
+
+    @OnClick(R.id.btn_clear_cart)
+    void clearCart() {
+        DatabaseUtils.clearCart(cartDatabase);
+
+        // Update adapter
+        DatabaseUtils.getAllCart(cartDatabase,this);
+    }
 
     CartDatabase cartDatabase;
 
