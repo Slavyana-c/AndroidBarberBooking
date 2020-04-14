@@ -10,12 +10,12 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.room.Database;
 
 import com.example.androidbarberbooking.Common.Common;
+import com.example.androidbarberbooking.Database.CartDataSource;
 import com.example.androidbarberbooking.Database.CartDatabase;
 import com.example.androidbarberbooking.Database.CartItem;
-import com.example.androidbarberbooking.Database.DatabaseUtils;
+import com.example.androidbarberbooking.Database.LocalCartDataSource;
 import com.example.androidbarberbooking.Interface.IRecyclerItemSelectedListener;
 import com.example.androidbarberbooking.Model.ShoppingItem;
 import com.example.androidbarberbooking.R;
@@ -23,16 +23,25 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+
 public class MyShoppingItemAdapter extends RecyclerView.Adapter<MyShoppingItemAdapter.MyViewHolder> {
 
     Context context;
     List<ShoppingItem> shoppingItemList;
-    CartDatabase cartDatabase;
+    CartDataSource cartDataSource;
+    CompositeDisposable compositeDisposable;
+
+    public void onDestroy() {
+        compositeDisposable.clear();
+    }
 
     public MyShoppingItemAdapter(Context context, List<ShoppingItem> shoppingItemList) {
         this.context = context;
         this.shoppingItemList = shoppingItemList;
-        cartDatabase = CartDatabase.getInstance(context);
+        cartDataSource = new LocalCartDataSource(CartDatabase.getInstance(context).cartDAO());
+        compositeDisposable = new CompositeDisposable();
     }
 
     @NonNull
@@ -62,8 +71,11 @@ public class MyShoppingItemAdapter extends RecyclerView.Adapter<MyShoppingItemAd
                 cartItem.setUserEmail(Common.currentUser.getEmail());
 
                 // Insert to db
-                DatabaseUtils.insertToCart(cartDatabase, cartItem);
-                Toast.makeText(context, "Added To Cart!", Toast.LENGTH_SHORT).show();
+                compositeDisposable.add(cartDataSource.insert(cartItem)
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(() -> Toast.makeText(context, "Added To Cart!", Toast.LENGTH_SHORT).show(),
+                        throwable -> Toast.makeText(context, throwable.getMessage(), Toast.LENGTH_SHORT).show()));
             }
         });
     }

@@ -6,31 +6,42 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.androidbarberbooking.Database.CartDataSource;
 import com.example.androidbarberbooking.Database.CartDatabase;
 import com.example.androidbarberbooking.Database.CartItem;
-import com.example.androidbarberbooking.Database.DatabaseUtils;
-import com.example.androidbarberbooking.Interface.ICartItemUpdateListener;
+import com.example.androidbarberbooking.Database.LocalCartDataSource;
 import com.example.androidbarberbooking.R;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
+import io.reactivex.SingleObserver;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
+
 public class MyCartAdapter extends RecyclerView.Adapter<MyCartAdapter.MyViewHolder> {
 
     Context context;
     List<CartItem> cartItemList;
-    CartDatabase cartDatabase;
-    ICartItemUpdateListener iCartItemUpdateListener;
+    CartDataSource cartDataSource;
+    CompositeDisposable compositeDisposable;
 
-    public MyCartAdapter(Context context, List<CartItem> cartItemList, ICartItemUpdateListener iCartItemUpdateListener) {
+    public void onDestroy() {
+        compositeDisposable.clear();
+    }
+
+    public MyCartAdapter(Context context, List<CartItem> cartItemList) {
         this.context = context;
         this.cartItemList = cartItemList;
-        this.iCartItemUpdateListener = iCartItemUpdateListener;
-        this.cartDatabase = CartDatabase.getInstance(context);
+        this.cartDataSource = new LocalCartDataSource(CartDatabase.getInstance(context).cartDAO());
+        this.compositeDisposable = new CompositeDisposable();
     }
 
     public Context getContext() {
@@ -70,21 +81,58 @@ public class MyCartAdapter extends RecyclerView.Adapter<MyCartAdapter.MyViewHold
             @Override
             public void onImageButtonClicked(View view, int pos, boolean isDecreased) {
                 if(isDecreased) {
-                    if(cartItemList.get(pos).getProductQuantity() > 0) {
+                    if(cartItemList.get(pos).getProductQuantity() > 1) {
                         cartItemList.get(pos)
                                 .setProductQuantity(cartItemList
                                         .get(pos)
                                         .getProductQuantity()-1);
 
-                        DatabaseUtils.updateCart(cartDatabase, cartItemList.get(pos));
+                        cartDataSource.update(cartItemList.get(pos))
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new SingleObserver<Integer>() {
+                                    @Override
+                                    public void onSubscribe(Disposable d) {
 
-                        holder.txt_quantity.setText(new StringBuilder(String.valueOf(cartItemList.get(position).getProductQuantity())));
+                                    }
 
+                                    @Override
+                                    public void onSuccess(Integer integer) {
+                                        holder.txt_quantity.setText(new StringBuilder(String.valueOf(cartItemList.get(position).getProductQuantity())));
+
+                                    }
+
+                                    @Override
+                                    public void onError(Throwable e) {
+                                        Toast.makeText(context, ""+e.getMessage(), Toast.LENGTH_SHORT).show();
+
+                                    }
+                                });
                     }
-                    else if(cartItemList.get(pos).getProductQuantity() == 0) {
-                        DatabaseUtils.deleteCart(cartDatabase, cartItemList.get(pos));
-                        cartItemList.remove(pos);
-                        notifyItemRemoved(pos);
+                    else if(cartItemList.get(pos).getProductQuantity() == 1) {
+
+                        cartDataSource.delete(cartItemList.get(pos))
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new SingleObserver<Integer>() {
+                                    @Override
+                                    public void onSubscribe(Disposable d) {
+
+                                    }
+
+                                    @Override
+                                    public void onSuccess(Integer integer) {
+                                        cartItemList.remove(pos);
+                                        notifyItemRemoved(pos);
+                                    }
+
+                                    @Override
+                                    public void onError(Throwable e) {
+                                        Toast.makeText(context, ""+e.getMessage(), Toast.LENGTH_SHORT).show();
+
+                                    }
+                                });
+
                     }
 
                 }
@@ -95,15 +143,35 @@ public class MyCartAdapter extends RecyclerView.Adapter<MyCartAdapter.MyViewHold
                                 .setProductQuantity(cartItemList
                                         .get(pos)
                                         .getProductQuantity()+1);
-                        DatabaseUtils.updateCart(cartDatabase, cartItemList.get(pos));
 
-                        holder.txt_quantity.setText(new StringBuilder(String.valueOf(cartItemList.get(position).getProductQuantity())));
+
+                        cartDataSource.update(cartItemList.get(pos))
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new SingleObserver<Integer>() {
+                                    @Override
+                                    public void onSubscribe(Disposable d) {
+
+                                    }
+
+                                    @Override
+                                    public void onSuccess(Integer integer) {
+                                        holder.txt_quantity.setText(new StringBuilder(String.valueOf(cartItemList.get(position).getProductQuantity())));
+
+                                    }
+
+                                    @Override
+                                    public void onError(Throwable e) {
+                                        Toast.makeText(context, ""+e.getMessage(), Toast.LENGTH_SHORT).show();
+
+                                    }
+                                });
 
                     }
 
                 }
 
-                iCartItemUpdateListener.onCartItemUpdateSuccess();
             }
         });
 
